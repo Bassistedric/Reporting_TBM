@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reporting TBM – Suivi PM</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:16px;}
+    .card{border:1px solid #ddd;border-radius:10px;padding:12px;margin:12px 0;}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+    label{display:block;font-size:12px;color:#444;margin-bottom:4px}
+    select,input{padding:8px;border:1px solid #ccc;border-radius:8px;min-width:180px}
+    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+    th,td{border-bottom:1px solid #eee;padding:8px;text-align:left}
+    th{position:sticky;top:0;background:#fff;z-index:1}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:600;font-size:12px}
+    .oui{background:#e8f5e9;color:#1b5e20}
+    .non{background:#ffebee;color:#b71c1c}
+    .muted{color:#666;font-size:12px}
+    .kpi{display:flex;gap:16px;flex-wrap:wrap}
+    .kpi div{padding:8px 12px;border:1px solid #eee;border-radius:10px}
+    .btn{cursor:pointer;border:1px solid #ccc;border-radius:10px;padding:8px 12px;background:#fff}
+    .btn:active{transform:translateY(1px)}
+  </style>
+</head>
+<body>
+  <h2>Reporting TBM – Suivi PM</h2>
+  <div class="muted">Source : feuille <b>SUIVI_PMS</b> publiée en CSV.</div>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>Métier</label>
+        <select id="selMetier"></select>
+      </div>
+      <div>
+        <label>Semaine</label>
+        <select id="selWeek"></select>
+      </div>
+      <div>
+        <label>PM</label>
+        <select id="selPM"></select>
+      </div>
+      <div>
+        <label>Chantier</label>
+        <select id="selChantier"></select>
+      </div>
+      <div>
+        <label>Chef d’équipe (optionnel)</label>
+        <select id="selCE"></select>
+      </div>
+
+      <div>
+        <button class="btn" id="btnReset">Réinitialiser</button>
+      </div>
+    </div>
+
+    <div class="kpi" style="margin-top:10px">
+      <div><b>Total</b><br><span id="kpiTotal">-</span></div>
+      <div><b>OUI</b><br><span id="kpiOui">-</span></div>
+      <div><b>NON</b><br><span id="kpiNon">-</span></div>
+      <div><b>% fait</b><br><span id="kpiPct">-</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="muted" id="status">Chargement…</div>
+    <div style="overflow:auto;max-height:70vh">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>Semaine</th><th>Métier</th><th>PM</th><th>Chantier</th><th>ChefEquipe</th><th>Ouvrier</th><th>Statut</th><th>Dernier TBM</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Charge la config globale -->
+  <script src="./sheetConfig.js"></script>
+
+  <script>
+    // ---- Utils
+    const norm = (s) => String(s ?? '').trim().toUpperCase().replace(/\s+/g,' ');
+    const parseCsv = (text) => {
+      // CSV simple (Google export) : on gère guillemets et virgules basiques
+      const rows = [];
+      let i=0, field='', row=[], inQ=false;
+      while (i < text.length) {
+        const c = text[i];
+        if (inQ) {
+          if (c === '"' && text[i+1] === '"') { field += '"'; i += 2; continue; }
+          if (c === '"') { inQ = false; i++; continue; }
+          field += c; i++; continue;
+        } else {
+          if (c === '"') { inQ = true; i++; continue; }
+          if (c === ',') { row.push(field); field=''; i++; continue; }
+          if (c === '\n') { row.push(field); rows.push(row); field=''; row=[]; i++; continue; }
+          if (c === '\r') { i++; continue; }
+          field += c; i++; continue;
+        }
+      }
+      if (field.length || row.length) { row.push(field); rows.push(row); }
+      return rows;
+    };
+
+    // ---- DOM
+    const el = (id) => document.getElementById(id);
+    const selMetier = el('selMetier');
+    const selWeek = el('selWeek');
+    const selPM = el('selPM');
+    const selChantier = el('selChantier');
+    const selCE = el('selCE');
+    const status = el('status');
+    const tbody = document.querySelector('#tbl tbody');
+
+    const setOptions = (select, values, placeholder='(Tous)') => {
+      const prev = select.value;
+      select.innerHTML = '';
+      const opt0 = document.createElement('option');
+      opt0.value = '';
+      opt0.textContent = placeholder;
+      select.appendChild(opt0);
+      values.forEach(v=>{
+        const o=document.createElement('option');
+        o.value=v;
+        o.textContent=v;
+        select.appendChild(o);
+      });
+      // restore if possible
+      if ([...select.options].some(o=>o.value===prev)) select.value = prev;
+      else select.value = '';
+    };
+
+    // ---- Data
+    let data = []; // [{week,metier,pm,chantier,ce,ouvrier,present,last}]
+    let loadedAt = '';
+
+    function currentFilters() {
+      return {
+        metier: selMetier.value,
+        week: selWeek.value,
+        pm: selPM.value,
+        chantier: selChantier.value,
+        ce: selCE.value
+      };
+    }
+
+    function applyFilters() {
+      const f = currentFilters();
+      const out = data.filter(r =>
+        (!f.metier || r.metier === f.metier) &&
+        (!f.week || String(r.week) === String(f.week)) &&
+        (!f.pm || r.pm === f.pm) &&
+        (!f.chantier || r.chantier === f.chantier) &&
+        (!f.ce || r.ce === f.ce)
+      );
+
+      // KPIs
+      const total = out.length;
+      const oui = out.filter(r=>r.present==='OUI').length;
+      const non = out.filter(r=>r.present==='NON').length;
+      el('kpiTotal').textContent = total;
+      el('kpiOui').textContent = oui;
+      el('kpiNon').textContent = non;
+      el('kpiPct').textContent = total ? Math.round((oui/total)*100) + '%' : '-';
+
+      // Table
+      tbody.innerHTML = '';
+      out
+        .sort((a,b)=> (a.week-b.week) || a.pm.localeCompare(b.pm) || a.chantier.localeCompare(b.chantier) || a.ce.localeCompare(b.ce) || a.ouvrier.localeCompare(b.ouvrier))
+        .forEach(r=>{
+          const tr=document.createElement('tr');
+          const pill = `<span class="pill ${r.present==='OUI'?'oui':'non'}">${r.present}</span>`;
+          tr.innerHTML = `
+            <td>${r.week}</td>
+            <td>${r.metier}</td>
+            <td>${r.pm}</td>
+            <td>${r.chantier}</td>
+            <td>${r.ce}</td>
+            <td>${r.ouvrier}</td>
+            <td>${pill}</td>
+            <td>${r.last || ''}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      status.textContent = `Lignes affichées : ${total} | Dernière génération: ${loadedAt || '-'} `;
+    }
+
+    function rebuildDropdowns() {
+      const f = currentFilters();
+
+      // valeurs possibles en cascade (à partir des données déjà chargées)
+      const metiers = [...new Set(data.map(r=>r.metier))].sort();
+      setOptions(selMetier, metiers, '(Tous)');
+
+      const weeks = [...new Set(data
+        .filter(r => !f.metier || r.metier === f.metier)
+        .map(r=>String(r.week))
+      )].sort((a,b)=>+a-+b);
+      setOptions(selWeek, weeks, '(Toutes)');
+
+      const pms = [...new Set(data
+        .filter(r => (!f.metier || r.metier === f.metier) && (!f.week || String(r.week)===String(f.week)))
+        .map(r=>r.pm)
+      )].sort();
+      setOptions(selPM, pms, '(Tous)');
+
+      const chantiers = [...new Set(data
+        .filter(r => (!f.metier || r.metier === f.metier) && (!f.week || String(r.week)===String(f.week)) && (!f.pm || r.pm===f.pm))
+        .map(r=>r.chantier)
+      )].sort();
+      setOptions(selChantier, chantiers, '(Tous)');
+
+      const ces = [...new Set(data
+        .filter(r => (!f.metier || r.metier === f.metier) && (!f.week || String(r.week)===String(f.week)) && (!f.pm || r.pm===f.pm) && (!f.chantier || r.chantier===f.chantier))
+        .map(r=>r.ce)
+      )].sort();
+      setOptions(selCE, ces, '(Tous)');
+    }
+
+    async function load() {
+      const url = window.SUIVI_PMS_CSV_URL;
+      if (!url) {
+        status.textContent = "SUIVI_PMS_CSV_URL manquant dans sheetConfig.js";
+        return;
+      }
+      status.textContent = "Chargement CSV…";
+
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+      const rows = parseCsv(text);
+
+      // Headers attendus: GeneratedAt,Week,Metier,PM,Chantier,ChefEquipe,Ouvrier,PresentTBM,LastTBMDate
+      const head = rows[0].map(h => String(h||'').trim());
+      const idx = {
+        gen: head.indexOf('GeneratedAt'),
+        week: head.indexOf('Week'),
+        metier: head.indexOf('Metier'),
+        pm: head.indexOf('PM'),
+        chantier: head.indexOf('Chantier'),
+        ce: head.indexOf('ChefEquipe'),
+        ouvrier: head.indexOf('Ouvrier'),
+        present: head.indexOf('PresentTBM'),
+        last: head.indexOf('LastTBMDate')
+      };
+
+      data = rows.slice(1)
+        .filter(r => r.length && r[idx.week])
+        .map(r => ({
+          generatedAt: r[idx.gen] || '',
+          week: parseInt(r[idx.week],10) || r[idx.week],
+          metier: norm(r[idx.metier]),
+          pm: String(r[idx.pm]||'').trim(),
+          chantier: String(r[idx.chantier]||'').trim(),
+          ce: String(r[idx.ce]||'').trim(),
+          ouvrier: String(r[idx.ouvrier]||'').trim(),
+          present: norm(r[idx.present]) === 'OUI' ? 'OUI' : 'NON',
+          last: String(r[idx.last]||'').trim()
+        }));
+
+      loadedAt = data.length ? (data[0].generatedAt || '') : '';
+      rebuildDropdowns();
+      applyFilters();
+    }
+
+    function hook() {
+      [selMetier, selWeek, selPM, selChantier, selCE].forEach(s=>{
+        s.addEventListener('change', () => {
+          rebuildDropdowns();
+          applyFilters();
+        });
+      });
+      el('btnReset').addEventListener('click', () => {
+        selMetier.value = '';
+        selWeek.value = '';
+        selPM.value = '';
+        selChantier.value = '';
+        selCE.value = '';
+        rebuildDropdowns();
+        applyFilters();
+      });
+    }
+
+    hook();
+    load().catch(err=>{
+      status.textContent = "Erreur chargement: " + err;
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
