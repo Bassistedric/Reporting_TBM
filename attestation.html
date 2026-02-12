@@ -1,42 +1,238 @@
-diff --git a/attestation/Code.gs b/attestation/Code.gs
-new file mode 100644
-index 0000000000000000000000000000000000000000..f9e98ca23ca35a8f8794ced4f7a10d454d720a86
---- /dev/null
-+++ b/attestation/Code.gs
-@@ -0,0 +1,36 @@
-+const ABSENCES_SHEET_NAME = 'ABSENCES';
-+
-+function doPost(e) {
-+  const payload = JSON.parse(e.postData.contents || '{}');
-+  const data = payload.data || {};
-+
-+  const headers = ['timestamp', 'week', 'metier', 'pm', 'chantier', 'ce', 'ouvrier', 'user', 'flag'];
-+  const sh = getSheetByNameOrCreate(ABSENCES_SHEET_NAME, headers);
-+  sh.appendRow([
-+    new Date().toISOString(),
-+    data.week || '',
-+    data.metier || '',
-+    data.pm || '',
-+    data.chantier || '',
-+    data.ce || '',
-+    data.ouvrier || '',
-+    data.user || '',
-+    data.flag || 'Absent+15js'
-+  ]);
-+
-+  return respond({ ok: true, sheet: ABSENCES_SHEET_NAME, row: sh.getLastRow() });
-+}
-+
-+function getSheetByNameOrCreate(name, headers) {
-+  const ss = SpreadsheetApp.getActive();
-+  let sh = ss.getSheetByName(name);
-+  if (!sh) {
-+    sh = ss.insertSheet(name);
-+    sh.appendRow(headers);
-+  }
-+  return sh;
-+}
-+
-+function respond(obj) {
-+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
-+}
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Attestation TBM</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:16px}
+    .card{border:1px solid #ddd;border-radius:12px;padding:12px;margin:12px 0;max-width:900px}
+    label{display:block;font-size:12px;color:#444;margin-bottom:4px}
+    select,input,button{padding:8px;border:1px solid #ccc;border-radius:10px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border-bottom:1px solid #eee;padding:8px;text-align:left}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:600;font-size:12px}
+    .oui{background:#e8f5e9;color:#1b5e20}
+    .non{background:#ffebee;color:#b71c1c}
+    .btn{cursor:pointer;background:#fff}
+  </style>
+</head>
+<body>
+  <h2>Attestation TBM</h2>
+  <div class="card">
+    <div class="row">
+      <div><label>Métier</label><select id="metier"></select></div>
+      <div><label>Semaine</label><select id="week"></select></div>
+      <div><label>PM</label><select id="pm"></select></div>
+      <div><label>Chantier</label><select id="chantier"></select></div>
+      <div><label>Chef d’équipe (optionnel)</label><select id="ce"></select></div>
+      <div><label>Utilisateur</label><input id="user" placeholder="Nom prénom"/></div>
+      <div><button class="btn" id="reset">Réinitialiser</button></div>
+    </div>
+    <div id="status" style="margin-top:10px;color:#666;font-size:12px">Chargement…</div>
+  </div>
+
+  <div class="card">
+    <div style="overflow:auto;max-height:70vh">
+      <table>
+        <thead>
+          <tr>
+            <th>Ouvrier</th><th>Présence TBM</th><th>Dernier TBM</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="./sheetConfig.js"></script>
+  <script>
+    // ---- Config attendue :
+    // - window.SUIVI_PMS_CSV_URL (CSV de SUIVI_PMS)
+    // - window.ATTESTATION_COLLECT_URL (webapp Apps Script dédiée pour log absences) -> optionnel pour l’instant
+
+    const norm = (s)=>String(s??'').trim().toUpperCase().replace(/\s+/g,' ');
+    const parseCsv = (text) => {
+      const rows = [];
+      let i=0, field='', row=[], inQ=false;
+      while (i < text.length) {
+        const c = text[i];
+        if (inQ) {
+          if (c === '"' && text[i+1] === '"') { field += '"'; i += 2; continue; }
+          if (c === '"') { inQ = false; i++; continue; }
+          field += c; i++; continue;
+        } else {
+          if (c === '"') { inQ = true; i++; continue; }
+          if (c === ',') { row.push(field); field=''; i++; continue; }
+          if (c === '\n') { row.push(field); rows.push(row); field=''; row=[]; i++; continue; }
+          if (c === '\r') { i++; continue; }
+          field += c; i++; continue;
+        }
+      }
+      if (field.length || row.length) { row.push(field); rows.push(row); }
+      return rows;
+    };
+
+    const el = (id)=>document.getElementById(id);
+    const selMetier = el('metier');
+    const selWeek = el('week');
+    const selPM = el('pm');
+    const selChantier = el('chantier');
+    const selCE = el('ce');
+    const inpUser = el('user');
+    const status = el('status');
+    const tbody = el('tbody');
+
+    let data = []; // rows de SUIVI_PMS
+
+    function setOptions(select, values, placeholder='(Tous)') {
+      const prev = select.value;
+      select.innerHTML='';
+      const o0=document.createElement('option'); o0.value=''; o0.textContent=placeholder; select.appendChild(o0);
+      values.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; select.appendChild(o); });
+      if ([...select.options].some(o=>o.value===prev)) select.value=prev; else select.value='';
+    }
+
+    function filters() {
+      return {
+        metier: selMetier.value,
+        week: selWeek.value,
+        pm: selPM.value,
+        chantier: selChantier.value,
+        ce: selCE.value
+      };
+    }
+
+    function rebuildDropdowns() {
+      const f = filters();
+      const metiers = [...new Set(data.map(r=>r.metier))].sort();
+      setOptions(selMetier, metiers, '(Tous)');
+
+      const weeks = [...new Set(data.filter(r=>!f.metier||r.metier===f.metier).map(r=>String(r.week)))].sort((a,b)=>+a-+b);
+      setOptions(selWeek, weeks, '(Toutes)');
+
+      const pms = [...new Set(data
+        .filter(r=>(!f.metier||r.metier===f.metier) && (!f.week||String(r.week)===String(f.week)))
+        .map(r=>r.pm))].sort();
+      setOptions(selPM, pms, '(Tous)');
+
+      const chantiers = [...new Set(data
+        .filter(r=>(!f.metier||r.metier===f.metier) && (!f.week||String(r.week)===String(f.week)) && (!f.pm||r.pm===f.pm))
+        .map(r=>r.chantier))].sort();
+      setOptions(selChantier, chantiers, '(Tous)');
+
+      const ces = [...new Set(data
+        .filter(r=>(!f.metier||r.metier===f.metier) && (!f.week||String(r.week)===String(f.week)) && (!f.pm||r.pm===f.pm) && (!f.chantier||r.chantier===f.chantier))
+        .map(r=>r.ce))].sort();
+      setOptions(selCE, ces, '(Tous)');
+    }
+
+    function render() {
+      const f = filters();
+      const out = data.filter(r =>
+        (!f.metier || r.metier === f.metier) &&
+        (!f.week || String(r.week) === String(f.week)) &&
+        (!f.pm || r.pm === f.pm) &&
+        (!f.chantier || r.chantier === f.chantier) &&
+        (!f.ce || r.ce === f.ce)
+      );
+
+      tbody.innerHTML='';
+      out
+        .sort((a,b)=>a.ouvrier.localeCompare(b.ouvrier))
+        .forEach(r=>{
+          const tr=document.createElement('tr');
+          const pill = `<span class="pill ${r.present==='OUI'?'oui':'non'}">${r.present}</span>`;
+          const btn = r.present === 'NON'
+            ? `<button class="btn" data-ouvrier="${encodeURIComponent(r.ouvrier)}">Absent+15js</button>`
+            : '';
+          tr.innerHTML = `
+            <td>${r.ouvrier}</td>
+            <td>${pill}</td>
+            <td>${r.last || ''}</td>
+            <td>${btn}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      status.textContent = `Ouvriers affichés : ${out.length}`;
+    }
+
+    async function load() {
+      const url = window.SUIVI_PMS_CSV_URL;
+      if (!url) { status.textContent = 'SUIVI_PMS_CSV_URL manquant dans sheetConfig.js'; return; }
+
+      const res = await fetch(url, { cache:'no-store' });
+      const text = await res.text();
+      const rows = parseCsv(text);
+      const head = rows[0].map(h=>String(h||'').trim());
+      const idx = {
+        week: head.indexOf('Week'),
+        metier: head.indexOf('Metier'),
+        pm: head.indexOf('PM'),
+        chantier: head.indexOf('Chantier'),
+        ce: head.indexOf('ChefEquipe'),
+        ouvrier: head.indexOf('Ouvrier'),
+        present: head.indexOf('PresentTBM'),
+        last: head.indexOf('LastTBMDate')
+      };
+
+      data = rows.slice(1)
+        .filter(r=>r[idx.week])
+        .map(r=>({
+          week: parseInt(r[idx.week],10) || r[idx.week],
+          metier: norm(r[idx.metier]),
+          pm: String(r[idx.pm]||'').trim(),
+          chantier: String(r[idx.chantier]||'').trim(),
+          ce: String(r[idx.ce]||'').trim(),
+          ouvrier: String(r[idx.ouvrier]||'').trim(),
+          present: norm(r[idx.present])==='OUI' ? 'OUI':'NON',
+          last: String(r[idx.last]||'').trim()
+        }));
+
+      rebuildDropdowns();
+      render();
+    }
+
+    function hook() {
+      [selMetier, selWeek, selPM, selChantier, selCE].forEach(s=>{
+        s.addEventListener('change', ()=>{ rebuildDropdowns(); render(); });
+      });
+
+      el('reset').addEventListener('click', ()=>{
+        selMetier.value=''; selWeek.value=''; selPM.value=''; selChantier.value=''; selCE.value='';
+        rebuildDropdowns(); render();
+      });
+
+      tbody.addEventListener('click', async (ev)=>{
+        const btn = ev.target.closest('button[data-ouvrier]');
+        if (!btn) return;
+
+        const user = inpUser.value.trim();
+        if (!user) { alert("Renseigne d'abord 'Utilisateur'."); return; }
+
+        const f = filters();
+        const ouvrier = decodeURIComponent(btn.dataset.ouvrier);
+
+        const url = window.ATTESTATION_COLLECT_URL;
+        if (!url) { alert("ATTESTATION_COLLECT_URL non configurée (Apps Script)."); return; }
+
+        const payload = { data: { ...f, ouvrier, user, flag: 'Absent+15js' } };
+
+        const resp = await fetch(url, {
+          method:'POST',
+          mode:'no-cors',
+          headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        alert("Signalement envoyé (Absent+15js).");
+      });
+    }
+
+    hook();
+    load().catch(err=>{ status.textContent = "Erreur: " + err; console.error(err); });
+  </script>
+</body>
+</html>
