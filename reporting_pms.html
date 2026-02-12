@@ -25,7 +25,10 @@
 </head>
 <body>
   <h2>Reporting TBM – Suivi PM</h2>
-  <div class="muted">Source : feuille <b>SUIVI_PMS</b> publiée en CSV.</div>
+  <div class="muted">
+    Source : feuille <b>SUIVI_PMS</b> publiée en CSV.
+    <br>Règle statut : <b>OUI</b> si l’ouvrier a eu un TBM <b>au moins une fois dans le mois</b> (mois correspondant à la semaine sélectionnée), <b>quel que soit le chantier</b>.
+  </div>
 
   <div class="card">
     <div class="row">
@@ -69,7 +72,7 @@
       <table id="tbl">
         <thead>
           <tr>
-            <th>Semaine</th><th>Métier</th><th>PM</th><th>Chantier</th><th>ChefEquipe</th><th>Ouvrier</th><th>Statut</th><th>Dernier TBM</th>
+            <th>Semaine</th><th>Métier</th><th>PM</th><th>Chantier</th><th>ChefEquipe</th><th>Ouvrier</th><th>Statut (mois)</th><th>Dernier TBM (mois)</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -77,14 +80,39 @@
     </div>
   </div>
 
-  <!-- Charge la config globale -->
+  <!-- Config globale -->
   <script src="./sheetConfig.js"></script>
 
   <script>
     // ---- Utils
     const norm = (s) => String(s ?? '').trim().toUpperCase().replace(/\s+/g,' ');
+    const pad2 = (n)=> String(n).padStart(2,'0');
+
+    // ISO week -> date du lundi (UTC) pour déterminer le mois
+    function isoWeekMonday(year, week) {
+      const jan4 = new Date(Date.UTC(year, 0, 4));
+      const day = jan4.getUTCDay() || 7; // 1..7
+      const mondayWeek1 = new Date(jan4);
+      mondayWeek1.setUTCDate(jan4.getUTCDate() - (day - 1));
+      const monday = new Date(mondayWeek1);
+      monday.setUTCDate(mondayWeek1.getUTCDate() + (week - 1) * 7);
+      return monday;
+    }
+    function yearMonthFromWeek(year, week) {
+      const d = isoWeekMonday(year, week);
+      return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}`; // "YYYY-MM"
+    }
+    function ymFromDateStr(s) {
+      s = String(s||'').trim();
+      if (!s) return '';
+      let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) return `${m[1]}-${m[2]}`;
+      m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+      if (m) return `${m[3]}-${m[2]}`;
+      return '';
+    }
+
     const parseCsv = (text) => {
-      // CSV simple (Google export) : on gère guillemets et virgules basiques
       const rows = [];
       let i=0, field='', row=[], inQ=false;
       while (i < text.length) {
@@ -128,14 +156,15 @@
         o.textContent=v;
         select.appendChild(o);
       });
-      // restore if possible
       if ([...select.options].some(o=>o.value===prev)) select.value = prev;
       else select.value = '';
     };
 
     // ---- Data
-    let data = []; // [{week,metier,pm,chantier,ce,ouvrier,present,last}]
+    let data = []; // [{generatedAt,week,metier,pm,chantier,ce,ouvrier,last}]
     let loadedAt = '';
+    let yearRef = new Date().getFullYear();
+    let tbmMonthIndex = new Map(); // key = METIER|YYYY-MM|OUVRIER -> lastTBMDate (max)
 
     function currentFilters() {
       return {
@@ -147,6 +176,15 @@
       };
     }
 
+    function getMonthStatus(metier, week, ouvrier) {
+      const w = parseInt(week, 10);
+      if (!w) return {present:'NON', last:''};
+      const ym = yearMonthFromWeek(yearRef, w);
+      const key = `${norm(metier)}|${ym}|${norm(ouvrier)}`;
+      const last = tbmMonthIndex.get(key) || '';
+      return { present: last ? 'OUI' : 'NON', last };
+    }
+
     function applyFilters() {
       const f = currentFilters();
       const out = data.filter(r =>
@@ -155,24 +193,25 @@
         (!f.pm || r.pm === f.pm) &&
         (!f.chantier || r.chantier === f.chantier) &&
         (!f.ce || r.ce === f.ce)
-      );
+      ).map(r => {
+        const ms = getMonthStatus(r.metier, f.week || r.week, r.ouvrier);
+        return { ...r, presentMonth: ms.present, lastMonth: ms.last };
+      });
 
-      // KPIs
       const total = out.length;
-      const oui = out.filter(r=>r.present==='OUI').length;
-      const non = out.filter(r=>r.present==='NON').length;
+      const oui = out.filter(r=>r.presentMonth==='OUI').length;
+      const non = out.filter(r=>r.presentMonth==='NON').length;
       el('kpiTotal').textContent = total;
       el('kpiOui').textContent = oui;
       el('kpiNon').textContent = non;
       el('kpiPct').textContent = total ? Math.round((oui/total)*100) + '%' : '-';
 
-      // Table
       tbody.innerHTML = '';
       out
         .sort((a,b)=> (a.week-b.week) || a.pm.localeCompare(b.pm) || a.chantier.localeCompare(b.chantier) || a.ce.localeCompare(b.ce) || a.ouvrier.localeCompare(b.ouvrier))
         .forEach(r=>{
           const tr=document.createElement('tr');
-          const pill = `<span class="pill ${r.present==='OUI'?'oui':'non'}">${r.present}</span>`;
+          const pill = `<span class="pill ${r.presentMonth==='OUI'?'oui':'non'}">${r.presentMonth}</span>`;
           tr.innerHTML = `
             <td>${r.week}</td>
             <td>${r.metier}</td>
@@ -181,18 +220,17 @@
             <td>${r.ce}</td>
             <td>${r.ouvrier}</td>
             <td>${pill}</td>
-            <td>${r.last || ''}</td>
+            <td>${r.lastMonth || ''}</td>
           `;
           tbody.appendChild(tr);
         });
 
-      status.textContent = `Lignes affichées : ${total} | Dernière génération: ${loadedAt || '-'} `;
+      status.textContent = `Lignes affichées : ${total} | Dernière génération CSV: ${loadedAt || '-'} | Année réf: ${yearRef}`;
     }
 
     function rebuildDropdowns() {
       const f = currentFilters();
 
-      // valeurs possibles en cascade (à partir des données déjà chargées)
       const metiers = [...new Set(data.map(r=>r.metier))].sort();
       setOptions(selMetier, metiers, '(Tous)');
 
@@ -234,7 +272,6 @@
       const text = await res.text();
       const rows = parseCsv(text);
 
-      // Headers attendus: GeneratedAt,Week,Metier,PM,Chantier,ChefEquipe,Ouvrier,PresentTBM,LastTBMDate
       const head = rows[0].map(h => String(h||'').trim());
       const idx = {
         gen: head.indexOf('GeneratedAt'),
@@ -244,7 +281,6 @@
         chantier: head.indexOf('Chantier'),
         ce: head.indexOf('ChefEquipe'),
         ouvrier: head.indexOf('Ouvrier'),
-        present: head.indexOf('PresentTBM'),
         last: head.indexOf('LastTBMDate')
       };
 
@@ -258,11 +294,29 @@
           chantier: String(r[idx.chantier]||'').trim(),
           ce: String(r[idx.ce]||'').trim(),
           ouvrier: String(r[idx.ouvrier]||'').trim(),
-          present: norm(r[idx.present]) === 'OUI' ? 'OUI' : 'NON',
           last: String(r[idx.last]||'').trim()
         }));
 
       loadedAt = data.length ? (data[0].generatedAt || '') : '';
+
+      // Année de référence (tu m’as dit: une seule année dans tbm)
+      // => on prend l’année du GeneratedAt si possible, sinon année courante.
+      yearRef = (() => {
+        const s = data[0]?.generatedAt || '';
+        const d = new Date(s);
+        return (d instanceof Date && !isNaN(d)) ? d.getFullYear() : new Date().getFullYear();
+      })();
+
+      // Index "TBM déjà fait dans le mois" basé sur LastTBMDate
+      tbmMonthIndex = new Map();
+      for (const r of data) {
+        const ym = ymFromDateStr(r.last);
+        if (!ym) continue;
+        const key = `${r.metier}|${ym}|${norm(r.ouvrier)}`;
+        const prev = tbmMonthIndex.get(key);
+        if (!prev || String(r.last) > String(prev)) tbmMonthIndex.set(key, r.last);
+      }
+
       rebuildDropdowns();
       applyFilters();
     }
