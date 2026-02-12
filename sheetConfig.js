@@ -20,6 +20,11 @@ index 4b9557cceec4bc0822bab387f434efec171def32..e08116aa4ce2a995ef801b69fe70374c
 +// Si LMRA_BASE_URL n'est pas renseignée, SHEET_BASE_URL sera utilisée.
 +export const LMRA_BASE_URL = "";
 +export const LMRA_TBM_GID = "";
+
+// Suivi PM (SUIVI_PMS) - CSV publié (LMRA_data_base)
+export const SUIVI_PMS_CSV_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQuTHHF0EDmhAxj4IbH_eqcsg8rtMUoJpo8gz5I2WAS3LhscoM-zhGH9zLVfJ00YKJsw3YiDoyqF3sJ/pub?gid=1420233608&single=true&output=csv";
+
 +
 +// URL Apps Script LMRA/TBM (app existante)
 +export const COLLECT_URL = "https://script.google.com/macros/s/AKfycbw53EiERifnozNg9ybNfbn_Ofm9NrFquashw_mbYoWyqtQROS6xXXzwVT2UQ4XxcJYK/exec";
@@ -28,16 +33,17 @@ index 4b9557cceec4bc0822bab387f434efec171def32..e08116aa4ce2a995ef801b69fe70374c
 +export const ATTESTATION_COLLECT_URL = "";
 +
  // Expose constants globally for non-module scripts
- if (typeof window !== 'undefined') {
--  Object.assign(window, { SHEET_BASE_URL, METIER_TO_GID, TBM_GID });
-+  Object.assign(window, {
-+    SHEET_BASE_URL,
-+    METIER_TO_GID,
-+    TBM_GID,
-+    AFFECTATIONS_GID,
-+    LMRA_BASE_URL,
-+    LMRA_TBM_GID,
-+    COLLECT_URL,
-+    ATTESTATION_COLLECT_URL
-+  });
- }
+if (typeof window !== 'undefined') {
+  Object.assign(window, {
+    SHEET_BASE_URL,
+    METIER_TO_GID,
+    TBM_GID,
+    SUIVI_PMS_CSV_URL,
+    AFFECTATIONS_GID,
+    LMRA_BASE_URL,
+    LMRA_TBM_GID,
+    COLLECT_URL,
+    ATTESTATION_COLLECT_URL
+  });
+}
+
