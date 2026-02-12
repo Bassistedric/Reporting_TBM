@@ -6,7 +6,7 @@
   <title>Attestation TBM</title>
   <style>
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:16px}
-    .card{border:1px solid #ddd;border-radius:12px;padding:12px;margin:12px 0;max-width:900px}
+    .card{border:1px solid #ddd;border-radius:12px;padding:12px;margin:12px 0;max-width:980px}
     label{display:block;font-size:12px;color:#444;margin-bottom:4px}
     select,input,button{padding:8px;border:1px solid #ccc;border-radius:10px}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
@@ -16,10 +16,15 @@
     .oui{background:#e8f5e9;color:#1b5e20}
     .non{background:#ffebee;color:#b71c1c}
     .btn{cursor:pointer;background:#fff}
+    .muted{color:#666;font-size:12px}
   </style>
 </head>
 <body>
   <h2>Attestation TBM</h2>
+  <div class="muted">
+    Règle statut : <b>OUI</b> si l’ouvrier a eu un TBM <b>au moins une fois dans le mois</b> (mois correspondant à la semaine sélectionnée), <b>quel que soit le chantier</b>.
+  </div>
+
   <div class="card">
     <div class="row">
       <div><label>Métier</label><select id="metier"></select></div>
@@ -38,7 +43,7 @@
       <table>
         <thead>
           <tr>
-            <th>Ouvrier</th><th>Présence TBM</th><th>Dernier TBM</th><th>Action</th>
+            <th>Ouvrier</th><th>Statut (mois)</th><th>Dernier TBM (mois)</th><th>Action</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -48,11 +53,32 @@
 
   <script src="./sheetConfig.js"></script>
   <script>
-    // ---- Config attendue :
-    // - window.SUIVI_PMS_CSV_URL (CSV de SUIVI_PMS)
-    // - window.ATTESTATION_COLLECT_URL (webapp Apps Script dédiée pour log absences) -> optionnel pour l’instant
-
     const norm = (s)=>String(s??'').trim().toUpperCase().replace(/\s+/g,' ');
+    const pad2 = (n)=> String(n).padStart(2,'0');
+
+    function isoWeekMonday(year, week) {
+      const jan4 = new Date(Date.UTC(year, 0, 4));
+      const day = jan4.getUTCDay() || 7;
+      const mondayWeek1 = new Date(jan4);
+      mondayWeek1.setUTCDate(jan4.getUTCDate() - (day - 1));
+      const monday = new Date(mondayWeek1);
+      monday.setUTCDate(mondayWeek1.getUTCDate() + (week - 1) * 7);
+      return monday;
+    }
+    function yearMonthFromWeek(year, week) {
+      const d = isoWeekMonday(year, week);
+      return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}`;
+    }
+    function ymFromDateStr(s) {
+      s = String(s||'').trim();
+      if (!s) return '';
+      let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) return `${m[1]}-${m[2]}`;
+      m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+      if (m) return `${m[3]}-${m[2]}`;
+      return '';
+    }
+
     const parseCsv = (text) => {
       const rows = [];
       let i=0, field='', row=[], inQ=false;
@@ -84,7 +110,9 @@
     const status = el('status');
     const tbody = el('tbody');
 
-    let data = []; // rows de SUIVI_PMS
+    let data = []; // population (PM/chantier/CE/ouviers) issue du CSV
+    let yearRef = new Date().getFullYear();
+    let tbmMonthIndex = new Map(); // key = METIER|YYYY-MM|OUVRIER -> lastTBMDate
 
     function setOptions(select, values, placeholder='(Tous)') {
       const prev = select.value;
@@ -102,6 +130,15 @@
         chantier: selChantier.value,
         ce: selCE.value
       };
+    }
+
+    function getMonthStatus(metier, week, ouvrier) {
+      const w = parseInt(week, 10);
+      if (!w) return {present:'NON', last:''};
+      const ym = yearMonthFromWeek(yearRef, w);
+      const key = `${norm(metier)}|${ym}|${norm(ouvrier)}`;
+      const last = tbmMonthIndex.get(key) || '';
+      return { present: last ? 'OUI' : 'NON', last };
     }
 
     function rebuildDropdowns() {
@@ -136,27 +173,31 @@
         (!f.pm || r.pm === f.pm) &&
         (!f.chantier || r.chantier === f.chantier) &&
         (!f.ce || r.ce === f.ce)
-      );
+      ).map(r => {
+        const ms = getMonthStatus(r.metier, f.week || r.week, r.ouvrier);
+        return { ...r, presentMonth: ms.present, lastMonth: ms.last };
+      });
 
       tbody.innerHTML='';
       out
         .sort((a,b)=>a.ouvrier.localeCompare(b.ouvrier))
         .forEach(r=>{
           const tr=document.createElement('tr');
-          const pill = `<span class="pill ${r.present==='OUI'?'oui':'non'}">${r.present}</span>`;
-          const btn = r.present === 'NON'
+          const pill = `<span class="pill ${r.presentMonth==='OUI'?'oui':'non'}">${r.presentMonth}</span>`;
+          // bouton uniquement si NON (pas à jour ce mois)
+          const btn = r.presentMonth === 'NON'
             ? `<button class="btn" data-ouvrier="${encodeURIComponent(r.ouvrier)}">Absent+15js</button>`
             : '';
           tr.innerHTML = `
             <td>${r.ouvrier}</td>
             <td>${pill}</td>
-            <td>${r.last || ''}</td>
+            <td>${r.lastMonth || ''}</td>
             <td>${btn}</td>
           `;
           tbody.appendChild(tr);
         });
 
-      status.textContent = `Ouvriers affichés : ${out.length}`;
+      status.textContent = `Ouvriers affichés : ${out.length} | Année réf: ${yearRef}`;
     }
 
     async function load() {
@@ -164,32 +205,49 @@
       if (!url) { status.textContent = 'SUIVI_PMS_CSV_URL manquant dans sheetConfig.js'; return; }
 
       const res = await fetch(url, { cache:'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const text = await res.text();
       const rows = parseCsv(text);
       const head = rows[0].map(h=>String(h||'').trim());
+
       const idx = {
+        gen: head.indexOf('GeneratedAt'),
         week: head.indexOf('Week'),
         metier: head.indexOf('Metier'),
         pm: head.indexOf('PM'),
         chantier: head.indexOf('Chantier'),
         ce: head.indexOf('ChefEquipe'),
         ouvrier: head.indexOf('Ouvrier'),
-        present: head.indexOf('PresentTBM'),
         last: head.indexOf('LastTBMDate')
       };
 
       data = rows.slice(1)
         .filter(r=>r[idx.week])
         .map(r=>({
+          generatedAt: r[idx.gen] || '',
           week: parseInt(r[idx.week],10) || r[idx.week],
           metier: norm(r[idx.metier]),
           pm: String(r[idx.pm]||'').trim(),
           chantier: String(r[idx.chantier]||'').trim(),
           ce: String(r[idx.ce]||'').trim(),
           ouvrier: String(r[idx.ouvrier]||'').trim(),
-          present: norm(r[idx.present])==='OUI' ? 'OUI':'NON',
           last: String(r[idx.last]||'').trim()
         }));
+
+      yearRef = (() => {
+        const s = data[0]?.generatedAt || '';
+        const d = new Date(s);
+        return (d instanceof Date && !isNaN(d)) ? d.getFullYear() : new Date().getFullYear();
+      })();
+
+      tbmMonthIndex = new Map();
+      for (const r of data) {
+        const ym = ymFromDateStr(r.last);
+        if (!ym) continue;
+        const key = `${r.metier}|${ym}|${norm(r.ouvrier)}`;
+        const prev = tbmMonthIndex.get(key);
+        if (!prev || String(r.last) > String(prev)) tbmMonthIndex.set(key, r.last);
+      }
 
       rebuildDropdowns();
       render();
@@ -213,14 +271,18 @@
         if (!user) { alert("Renseigne d'abord 'Utilisateur'."); return; }
 
         const f = filters();
+        if (!f.week) { alert("Sélectionne d'abord une semaine."); return; }
+
         const ouvrier = decodeURIComponent(btn.dataset.ouvrier);
 
         const url = window.ATTESTATION_COLLECT_URL;
         if (!url) { alert("ATTESTATION_COLLECT_URL non configurée (Apps Script)."); return; }
 
+        // On log l'absence "mois" (flag)
         const payload = { data: { ...f, ouvrier, user, flag: 'Absent+15js' } };
 
-        const resp = await fetch(url, {
+        // no-cors => pas de lecture réponse (normal)
+        await fetch(url, {
           method:'POST',
           mode:'no-cors',
           headers:{ 'Content-Type':'text/plain;charset=utf-8' },
