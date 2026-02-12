@@ -30,7 +30,7 @@ export const SUIVI_PMS_CSV_URL =
 +export const COLLECT_URL = "https://script.google.com/macros/s/AKfycbw53EiERifnozNg9ybNfbn_Ofm9NrFquashw_mbYoWyqtQROS6xXXzwVT2UQ4XxcJYK/exec";
 +
 +// URL Apps Script dédiée à l'application Attestation (web app séparée)
-+export const ATTESTATION_COLLECT_URL = "";
++export const ATTESTATION_COLLECT_URL = "https://script.google.com/macros/s/AKfycbyVjoTjAttwzjdQqUp2a1Upvvl9A1WEvp0dse47Cp_gt6mVOYDc1P_2u372poEZiu_H/exec";
 +
  // Expose constants globally for non-module scripts
 if (typeof window !== 'undefined') {
