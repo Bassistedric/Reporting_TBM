@@ -165,40 +165,68 @@
       setOptions(selCE, ces, '(Tous)');
     }
 
-    function render() {
-      const f = filters();
-      const out = data.filter(r =>
-        (!f.metier || r.metier === f.metier) &&
-        (!f.week || String(r.week) === String(f.week)) &&
-        (!f.pm || r.pm === f.pm) &&
-        (!f.chantier || r.chantier === f.chantier) &&
-        (!f.ce || r.ce === f.ce)
-      ).map(r => {
-        const ms = getMonthStatus(r.metier, f.week || r.week, r.ouvrier);
-        return { ...r, presentMonth: ms.present, lastMonth: ms.last };
-      });
+function render() {
+  const f = filters();
 
-      tbody.innerHTML='';
-      out
-        .sort((a,b)=>a.ouvrier.localeCompare(b.ouvrier))
-        .forEach(r=>{
-          const tr=document.createElement('tr');
-          const pill = `<span class="pill ${r.presentMonth==='OUI'?'oui':'non'}">${r.presentMonth}</span>`;
-          // bouton uniquement si NON (pas à jour ce mois)
-          const btn = r.presentMonth === 'NON'
-            ? `<button class="btn" data-ouvrier="${encodeURIComponent(r.ouvrier)}">Absent+15js</button>`
-            : '';
-          tr.innerHTML = `
-            <td>${r.ouvrier}</td>
-            <td>${pill}</td>
-            <td>${r.lastMonth || ''}</td>
-            <td>${btn}</td>
-          `;
-          tbody.appendChild(tr);
-        });
+  // 1) filtre population (semaine / PM / chantier / CE)
+  const scoped = data.filter(r =>
+    (!f.metier || r.metier === f.metier) &&
+    (!f.week || String(r.week) === String(f.week)) &&
+    (!f.pm || r.pm === f.pm) &&
+    (!f.chantier || r.chantier === f.chantier) &&
+    (!f.ce || r.ce === f.ce)
+  );
 
-      status.textContent = `Ouvriers affichés : ${out.length} | Année réf: ${yearRef}`;
+  // 2) dédoublonnage par ouvrier : si OUI dans le mois => 1 ligne OUI (on cache les NON)
+  const byWorker = new Map(); // key ouvrier norm -> row affichée
+  for (const r of scoped) {
+    const ms = getMonthStatus(r.metier, f.week || r.week, r.ouvrier);
+    const presentMonth = ms.present;
+    const lastMonth = ms.last;
+
+    const k = norm(r.ouvrier);
+
+    if (!byWorker.has(k)) {
+      byWorker.set(k, { ...r, presentMonth, lastMonth });
+    } else {
+      const cur = byWorker.get(k);
+
+      // priorité au OUI
+      if (cur.presentMonth !== 'OUI' && presentMonth === 'OUI') {
+        byWorker.set(k, { ...r, presentMonth, lastMonth });
+        continue;
+      }
+
+      // si les deux sont OUI: garder la date la plus récente
+      if (cur.presentMonth === 'OUI' && presentMonth === 'OUI') {
+        if (String(lastMonth) > String(cur.lastMonth || '')) {
+          byWorker.set(k, { ...r, presentMonth, lastMonth });
+        }
+      }
     }
+  }
+
+  const out = Array.from(byWorker.values()).sort((a,b)=>a.ouvrier.localeCompare(b.ouvrier));
+
+  tbody.innerHTML='';
+  out.forEach(r=>{
+    const tr=document.createElement('tr');
+    const pill = `<span class="pill ${r.presentMonth==='OUI'?'oui':'non'}">${r.presentMonth}</span>`;
+    const btn = r.presentMonth === 'NON'
+      ? `<button class="btn" data-ouvrier="${encodeURIComponent(r.ouvrier)}">Absent+15js</button>`
+      : '';
+    tr.innerHTML = `
+      <td>${r.ouvrier}</td>
+      <td>${pill}</td>
+      <td>${r.lastMonth || ''}</td>
+      <td>${btn}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  status.textContent = `Ouvriers affichés : ${out.length} | Année réf: ${yearRef}`;
+}
+
 
     async function load() {
       const url = window.SUIVI_PMS_CSV_URL;
