@@ -186,47 +186,80 @@
     }
 
     function applyFilters() {
-      const f = currentFilters();
-      const out = data.filter(r =>
-        (!f.metier || r.metier === f.metier) &&
-        (!f.week || String(r.week) === String(f.week)) &&
-        (!f.pm || r.pm === f.pm) &&
-        (!f.chantier || r.chantier === f.chantier) &&
-        (!f.ce || r.ce === f.ce)
-      ).map(r => {
-        const ms = getMonthStatus(r.metier, f.week || r.week, r.ouvrier);
-        return { ...r, presentMonth: ms.present, lastMonth: ms.last };
-      });
+  const f = currentFilters();
 
-      const total = out.length;
-      const oui = out.filter(r=>r.presentMonth==='OUI').length;
-      const non = out.filter(r=>r.presentMonth==='NON').length;
-      el('kpiTotal').textContent = total;
-      el('kpiOui').textContent = oui;
-      el('kpiNon').textContent = non;
-      el('kpiPct').textContent = total ? Math.round((oui/total)*100) + '%' : '-';
+  // 1) on filtre la population de la semaine (PM/chantier/CE)
+  const scoped = data.filter(r =>
+    (!f.metier || r.metier === f.metier) &&
+    (!f.week || String(r.week) === String(f.week)) &&
+    (!f.pm || r.pm === f.pm) &&
+    (!f.chantier || r.chantier === f.chantier) &&
+    (!f.ce || r.ce === f.ce)
+  );
 
-      tbody.innerHTML = '';
-      out
-        .sort((a,b)=> (a.week-b.week) || a.pm.localeCompare(b.pm) || a.chantier.localeCompare(b.chantier) || a.ce.localeCompare(b.ce) || a.ouvrier.localeCompare(b.ouvrier))
-        .forEach(r=>{
-          const tr=document.createElement('tr');
-          const pill = `<span class="pill ${r.presentMonth==='OUI'?'oui':'non'}">${r.presentMonth}</span>`;
-          tr.innerHTML = `
-            <td>${r.week}</td>
-            <td>${r.metier}</td>
-            <td>${r.pm}</td>
-            <td>${r.chantier}</td>
-            <td>${r.ce}</td>
-            <td>${r.ouvrier}</td>
-            <td>${pill}</td>
-            <td>${r.lastMonth || ''}</td>
-          `;
-          tbody.appendChild(tr);
-        });
+  // 2) dédoublonnage par ouvrier: on garde OUI si au moins un OUI dans le mois
+  const byWorker = new Map(); // key = OUVRIER_NORM -> row affichée
+  for (const r of scoped) {
+    const ms = getMonthStatus(r.metier, f.week || r.week, r.ouvrier);
+    const presentMonth = ms.present;
+    const lastMonth = ms.last;
 
-      status.textContent = `Lignes affichées : ${total} | Dernière génération CSV: ${loadedAt || '-'} | Année réf: ${yearRef}`;
+    const k = norm(r.ouvrier);
+
+    if (!byWorker.has(k)) {
+      byWorker.set(k, { ...r, presentMonth, lastMonth });
+    } else {
+      const cur = byWorker.get(k);
+
+      // priorité au OUI
+      if (cur.presentMonth !== 'OUI' && presentMonth === 'OUI') {
+        byWorker.set(k, { ...r, presentMonth, lastMonth });
+        continue;
+      }
+
+      // si les deux sont OUI: garder la date la plus récente
+      if (cur.presentMonth === 'OUI' && presentMonth === 'OUI') {
+        if (String(lastMonth) > String(cur.lastMonth || '')) {
+          byWorker.set(k, { ...r, presentMonth, lastMonth });
+        }
+      }
     }
+  }
+
+  const out = Array.from(byWorker.values());
+
+  // KPIs
+  const total = out.length;
+  const oui = out.filter(r=>r.presentMonth==='OUI').length;
+  const non = out.filter(r=>r.presentMonth==='NON').length;
+  el('kpiTotal').textContent = total;
+  el('kpiOui').textContent = oui;
+  el('kpiNon').textContent = non;
+  el('kpiPct').textContent = total ? Math.round((oui/total)*100) + '%' : '-';
+
+  // Table
+  tbody.innerHTML = '';
+  out
+    .sort((a,b)=> (a.week-b.week) || a.pm.localeCompare(b.pm) || a.chantier.localeCompare(b.chantier) || a.ce.localeCompare(b.ce) || a.ouvrier.localeCompare(b.ouvrier))
+    .forEach(r=>{
+      const tr=document.createElement('tr');
+      const pill = `<span class="pill ${r.presentMonth==='OUI'?'oui':'non'}">${r.presentMonth}</span>`;
+      tr.innerHTML = `
+        <td>${r.week}</td>
+        <td>${r.metier}</td>
+        <td>${r.pm}</td>
+        <td>${r.chantier}</td>
+        <td>${r.ce}</td>
+        <td>${r.ouvrier}</td>
+        <td>${pill}</td>
+        <td>${r.lastMonth || ''}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+  status.textContent = `Lignes affichées : ${total} | Dernière génération CSV: ${loadedAt || '-'} | Année réf: ${yearRef}`;
+}
+
 
     function rebuildDropdowns() {
       const f = currentFilters();
