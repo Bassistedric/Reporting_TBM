@@ -2,7 +2,8 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#104861" />
   <title>tbPM — Suivi PM</title>
   <style>
     :root{
@@ -50,7 +51,7 @@
   <div class="wrap">
     <div class="topbar">
       <div class="rowTop">
-        <button class="back" onclick="location.href='./index.html'">← Retour</button>
+        <button class="back" onclick="location.href='./tbpm.html'">← Retour</button>
         <div class="title">Suivi PM</div>
         <div style="width:74px"></div>
       </div>
@@ -192,7 +193,7 @@
           tbody.appendChild(tr);
         });
 
-      status.textContent = `Lignes affichées : ${total} | Dernière génération: ${loadedAt || '-'} `;
+      status.textContent = `Lignes affichées : ${total} | Dernière génération : ${loadedAt || '-'} `;
     }
 
     function rebuildDropdowns() {
