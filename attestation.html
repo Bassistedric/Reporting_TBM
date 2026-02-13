@@ -3,82 +3,106 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Attestation TBM</title>
+  <title>tbPM — Présences chantier</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:16px}
-    .card{border:1px solid #ddd;border-radius:12px;padding:12px;margin:12px 0;max-width:980px}
-    label{display:block;font-size:12px;color:#444;margin-bottom:4px}
-    select,input,button{padding:8px;border:1px solid #ccc;border-radius:10px}
+    :root{
+      --vma-blue:#104861;
+      --bg:#f5f6f8;
+      --card:#ffffff;
+      --border:#e6e6e6;
+      --text:#111827;
+      --muted:#6b7280;
+      --shadow:0 8px 20px rgba(0,0,0,.06);
+      --radius:16px;
+      --ok-bg:#e8f5e9; --ok:#1b5e20;
+      --no-bg:#ffebee; --no:#b71c1c;
+    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+    .wrap{max-width:920px;margin:0 auto;padding:14px;}
+    .topbar{position:sticky;top:0;z-index:10;background:rgba(245,246,248,.92);backdrop-filter:blur(8px);padding:10px 0;}
+    .rowTop{display:flex;align-items:center;gap:10px;justify-content:space-between;}
+    .back{border:1px solid var(--border);background:#fff;border-radius:12px;padding:8px 10px;cursor:pointer}
+    .title{
+      flex:1;
+      background:var(--vma-blue); color:#D9D9D9;
+      border-radius:14px; padding:10px 14px;
+      text-align:center; font-weight:800; letter-spacing:.3px;
+      box-shadow:var(--shadow);
+    }
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin-top:12px;}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+    label{display:block;font-size:12px;color:#374151;margin-bottom:4px}
+    select,input,button{padding:10px;border:1px solid #d1d5db;border-radius:12px;background:#fff}
+    select{min-width:180px}
+    .muted{color:var(--muted);font-size:12px}
     table{width:100%;border-collapse:collapse;margin-top:10px}
-    th,td{border-bottom:1px solid #eee;padding:8px;text-align:left}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:600;font-size:12px}
-    .oui{background:#e8f5e9;color:#1b5e20}
-    .non{background:#ffebee;color:#b71c1c}
-    .btn{cursor:pointer;background:#fff}
-    .muted{color:#666;font-size:12px}
+    th,td{border-bottom:1px solid #eee;padding:10px;text-align:left;font-size:14px}
+    th{position:sticky;top:0;background:#fff;z-index:1}
+    .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-weight:800;font-size:12px}
+    .oui{background:var(--ok-bg);color:var(--ok)}
+    .non{background:var(--no-bg);color:var(--no)}
+    .btn{cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+    .danger{border-color:#fca5a5}
   </style>
 </head>
 <body>
-  <h2>Attestation TBM</h2>
-  <div class="muted">
-    Règle statut : <b>OUI</b> si l’ouvrier a eu un TBM <b>au moins une fois dans le mois</b> (mois correspondant à la semaine sélectionnée), <b>quel que soit le chantier</b>.
-  </div>
-
-  <div class="card">
-    <div class="row">
-      <div><label>Métier</label><select id="metier"></select></div>
-      <div><label>Semaine</label><select id="week"></select></div>
-      <div><label>PM</label><select id="pm"></select></div>
-      <div><label>Chantier</label><select id="chantier"></select></div>
-      <div><label>Chef d’équipe (optionnel)</label><select id="ce"></select></div>
-      <div><label>Utilisateur</label><input id="user" placeholder="Nom prénom"/></div>
-      <div><button class="btn" id="reset">Réinitialiser</button></div>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="rowTop">
+        <button class="back" onclick="location.href='./index.html'">← Retour</button>
+        <div class="title">Présences chantier</div>
+        <div style="width:74px"></div>
+      </div>
     </div>
-    <div id="status" style="margin-top:10px;color:#666;font-size:12px">Chargement…</div>
-  </div>
 
-  <div class="card">
-    <div style="overflow:auto;max-height:70vh">
-      <table>
-        <thead>
-          <tr>
-            <th>Ouvrier</th><th>Statut (mois)</th><th>Dernier TBM (mois)</th><th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Métier</label>
+          <select id="metier"></select>
+        </div>
+        <div>
+          <label>Semaine</label>
+          <select id="week"></select>
+        </div>
+        <div>
+          <label>PM</label>
+          <select id="pm"></select>
+        </div>
+        <div>
+          <label>Chantier</label>
+          <select id="chantier"></select>
+        </div>
+        <div>
+          <label>Chef d’équipe (optionnel)</label>
+          <select id="ce"></select>
+        </div>
+        <div>
+          <button class="btn" id="reset">Réinitialiser</button>
+        </div>
+      </div>
+      <div id="status" class="muted" style="margin-top:10px">Chargement…</div>
     </div>
+
+    <div class="card">
+      <div style="overflow:auto;max-height:70vh">
+        <table>
+          <thead>
+            <tr>
+              <th>Ouvrier</th><th>Statut</th><th>Dernier TBM</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 
   <script src="./sheetConfig.js"></script>
   <script>
     const norm = (s)=>String(s??'').trim().toUpperCase().replace(/\s+/g,' ');
-    const pad2 = (n)=> String(n).padStart(2,'0');
-
-    function isoWeekMonday(year, week) {
-      const jan4 = new Date(Date.UTC(year, 0, 4));
-      const day = jan4.getUTCDay() || 7;
-      const mondayWeek1 = new Date(jan4);
-      mondayWeek1.setUTCDate(jan4.getUTCDate() - (day - 1));
-      const monday = new Date(mondayWeek1);
-      monday.setUTCDate(mondayWeek1.getUTCDate() + (week - 1) * 7);
-      return monday;
-    }
-    function yearMonthFromWeek(year, week) {
-      const d = isoWeekMonday(year, week);
-      return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}`;
-    }
-    function ymFromDateStr(s) {
-      s = String(s||'').trim();
-      if (!s) return '';
-      let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-      if (m) return `${m[1]}-${m[2]}`;
-      m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-      if (m) return `${m[3]}-${m[2]}`;
-      return '';
-    }
-
     const parseCsv = (text) => {
       const rows = [];
       let i=0, field='', row=[], inQ=false;
@@ -106,13 +130,10 @@
     const selPM = el('pm');
     const selChantier = el('chantier');
     const selCE = el('ce');
-    const inpUser = el('user');
     const status = el('status');
     const tbody = el('tbody');
 
-    let data = []; // population (PM/chantier/CE/ouviers) issue du CSV
-    let yearRef = new Date().getFullYear();
-    let tbmMonthIndex = new Map(); // key = METIER|YYYY-MM|OUVRIER -> lastTBMDate
+    let data = []; // rows de SUIVI_PMS
 
     function setOptions(select, values, placeholder='(Tous)') {
       const prev = select.value;
@@ -130,15 +151,6 @@
         chantier: selChantier.value,
         ce: selCE.value
       };
-    }
-
-    function getMonthStatus(metier, week, ouvrier) {
-      const w = parseInt(week, 10);
-      if (!w) return {present:'NON', last:''};
-      const ym = yearMonthFromWeek(yearRef, w);
-      const key = `${norm(metier)}|${ym}|${norm(ouvrier)}`;
-      const last = tbmMonthIndex.get(key) || '';
-      return { present: last ? 'OUI' : 'NON', last };
     }
 
     function rebuildDropdowns() {
@@ -165,117 +177,78 @@
       setOptions(selCE, ces, '(Tous)');
     }
 
-function render() {
-  const f = filters();
+    function render() {
+      const f = filters();
+      const out = data.filter(r =>
+        (!f.metier || r.metier === f.metier) &&
+        (!f.week || String(r.week) === String(f.week)) &&
+        (!f.pm || r.pm === f.pm) &&
+        (!f.chantier || r.chantier === f.chantier) &&
+        (!f.ce || r.ce === f.ce)
+      );
 
-  // 1) filtre population (semaine / PM / chantier / CE)
-  const scoped = data.filter(r =>
-    (!f.metier || r.metier === f.metier) &&
-    (!f.week || String(r.week) === String(f.week)) &&
-    (!f.pm || r.pm === f.pm) &&
-    (!f.chantier || r.chantier === f.chantier) &&
-    (!f.ce || r.ce === f.ce)
-  );
-
-  // 2) dédoublonnage par ouvrier : si OUI dans le mois => 1 ligne OUI (on cache les NON)
-  const byWorker = new Map(); // key ouvrier norm -> row affichée
-  for (const r of scoped) {
-    const ms = getMonthStatus(r.metier, f.week || r.week, r.ouvrier);
-    const presentMonth = ms.present;
-    const lastMonth = ms.last;
-
-    const k = norm(r.ouvrier);
-
-    if (!byWorker.has(k)) {
-      byWorker.set(k, { ...r, presentMonth, lastMonth });
-    } else {
-      const cur = byWorker.get(k);
-
-      // priorité au OUI
-      if (cur.presentMonth !== 'OUI' && presentMonth === 'OUI') {
-        byWorker.set(k, { ...r, presentMonth, lastMonth });
-        continue;
+      // dédoublonnage : si un ouvrier a déjà OUI quelque part dans le scope filtré → on ne montre que la ligne OUI
+      const best = new Map(); // ouvrier -> row
+      for (const r of out) {
+        const key = r.ouvrier;
+        const prev = best.get(key);
+        if (!prev) { best.set(key, r); continue; }
+        if (prev.present === 'NON' && r.present === 'OUI') best.set(key, r);
       }
+      const rows = Array.from(best.values()).sort((a,b)=>a.ouvrier.localeCompare(b.ouvrier,'fr'));
 
-      // si les deux sont OUI: garder la date la plus récente
-      if (cur.presentMonth === 'OUI' && presentMonth === 'OUI') {
-        if (String(lastMonth) > String(cur.lastMonth || '')) {
-          byWorker.set(k, { ...r, presentMonth, lastMonth });
-        }
-      }
+      tbody.innerHTML='';
+      rows.forEach(r=>{
+        const tr=document.createElement('tr');
+        const pill = r.present === 'OUI'
+          ? `<span class="pill oui">FAIT</span>`
+          : `<span class="pill non">À FAIRE</span>`;
+        const btn = r.present === 'NON'
+          ? `<button class="btn danger" data-ouvrier="${encodeURIComponent(r.ouvrier)}">Absent+15js</button>`
+          : '';
+        tr.innerHTML = `
+          <td>${r.ouvrier}</td>
+          <td>${pill}</td>
+          <td>${r.last || ''}</td>
+          <td>${btn}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      status.textContent = `Ouvriers affichés : ${rows.length}`;
     }
-  }
-
-  const out = Array.from(byWorker.values()).sort((a,b)=>a.ouvrier.localeCompare(b.ouvrier));
-
-  tbody.innerHTML='';
-  out.forEach(r=>{
-    const tr=document.createElement('tr');
-    const pill = `<span class="pill ${r.presentMonth==='OUI'?'oui':'non'}">${r.presentMonth}</span>`;
-    const btn = r.presentMonth === 'NON'
-      ? `<button class="btn" data-ouvrier="${encodeURIComponent(r.ouvrier)}">Absent+15js</button>`
-      : '';
-    tr.innerHTML = `
-      <td>${r.ouvrier}</td>
-      <td>${pill}</td>
-      <td>${r.lastMonth || ''}</td>
-      <td>${btn}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  status.textContent = `Ouvriers affichés : ${out.length} | Année réf: ${yearRef}`;
-}
-
 
     async function load() {
       const url = window.SUIVI_PMS_CSV_URL;
       if (!url) { status.textContent = 'SUIVI_PMS_CSV_URL manquant dans sheetConfig.js'; return; }
 
       const res = await fetch(url, { cache:'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
       const text = await res.text();
       const rows = parseCsv(text);
       const head = rows[0].map(h=>String(h||'').trim());
-
       const idx = {
-        gen: head.indexOf('GeneratedAt'),
         week: head.indexOf('Week'),
         metier: head.indexOf('Metier'),
         pm: head.indexOf('PM'),
         chantier: head.indexOf('Chantier'),
         ce: head.indexOf('ChefEquipe'),
         ouvrier: head.indexOf('Ouvrier'),
+        present: head.indexOf('PresentTBM'),
         last: head.indexOf('LastTBMDate')
       };
 
       data = rows.slice(1)
         .filter(r=>r[idx.week])
         .map(r=>({
-          generatedAt: r[idx.gen] || '',
           week: parseInt(r[idx.week],10) || r[idx.week],
           metier: norm(r[idx.metier]),
           pm: String(r[idx.pm]||'').trim(),
           chantier: String(r[idx.chantier]||'').trim(),
           ce: String(r[idx.ce]||'').trim(),
           ouvrier: String(r[idx.ouvrier]||'').trim(),
+          present: norm(r[idx.present])==='OUI' ? 'OUI':'NON',
           last: String(r[idx.last]||'').trim()
         }));
-
-      yearRef = (() => {
-        const s = data[0]?.generatedAt || '';
-        const d = new Date(s);
-        return (d instanceof Date && !isNaN(d)) ? d.getFullYear() : new Date().getFullYear();
-      })();
-
-      tbmMonthIndex = new Map();
-      for (const r of data) {
-        const ym = ymFromDateStr(r.last);
-        if (!ym) continue;
-        const key = `${r.metier}|${ym}|${norm(r.ouvrier)}`;
-        const prev = tbmMonthIndex.get(key);
-        if (!prev || String(r.last) > String(prev)) tbmMonthIndex.set(key, r.last);
-      }
 
       rebuildDropdowns();
       render();
@@ -295,21 +268,16 @@ function render() {
         const btn = ev.target.closest('button[data-ouvrier]');
         if (!btn) return;
 
-        const user = inpUser.value.trim();
-        if (!user) { alert("Renseigne d'abord 'Utilisateur'."); return; }
-
         const f = filters();
-        if (!f.week) { alert("Sélectionne d'abord une semaine."); return; }
+        if (!f.pm) { alert("Sélectionne d'abord un PM (ça sert d'utilisateur)."); return; }
 
         const ouvrier = decodeURIComponent(btn.dataset.ouvrier);
 
         const url = window.ATTESTATION_COLLECT_URL;
         if (!url) { alert("ATTESTATION_COLLECT_URL non configurée (Apps Script)."); return; }
 
-        // On log l'absence "mois" (flag)
-        const payload = { data: { ...f, ouvrier, user, flag: 'Absent+15js' } };
+        const payload = { data: { ...f, ouvrier, user: f.pm, flag: 'Absent+15js' } };
 
-        // no-cors => pas de lecture réponse (normal)
         await fetch(url, {
           method:'POST',
           mode:'no-cors',
