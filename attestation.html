@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#104861" />
   <title>tbPM — Présences chantier</title>
   <style>
@@ -40,8 +40,8 @@
     th,td{border-bottom:1px solid #eee;padding:10px;text-align:left;font-size:14px}
     th{position:sticky;top:0;background:#fff;z-index:1}
     .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-weight:800;font-size:12px}
-    .fait{background:var(--ok-bg);color:var(--ok)}
-    .afaire{background:var(--no-bg);color:var(--no)}
+    .oui{background:var(--ok-bg);color:var(--ok)}
+    .non{background:var(--no-bg);color:var(--no)}
     .btn{cursor:pointer}
     .btn:active{transform:translateY(1px)}
     .danger{border-color:#fca5a5}
@@ -116,7 +116,7 @@
     const status = el('status');
     const tbody = el('tbody');
 
-    let data = []; // rows SUIVI_PMS
+    let data = [];
 
     function setOptions(select, values, placeholder='(Tous)') {
       const prev = select.value;
@@ -170,8 +170,8 @@
         (!f.ce || r.ce === f.ce)
       );
 
-      // Dédoublonnage: si un ouvrier a au moins 1 OUI dans le scope => on n'affiche que la ligne OUI
-      const best = new Map(); // ouvrier -> row
+      // Dédoublonnage : si un ouvrier a déjà OUI dans le scope -> on ne garde que OUI
+      const best = new Map();
       for (const r of out) {
         const key = r.ouvrier;
         const prev = best.get(key);
@@ -184,8 +184,8 @@
       rows.forEach(r=>{
         const tr=document.createElement('tr');
         const pill = r.present === 'OUI'
-          ? `<span class="pill fait">FAIT</span>`
-          : `<span class="pill afaire">À FAIRE</span>`;
+          ? `<span class="pill oui">FAIT</span>`
+          : `<span class="pill non">À FAIRE</span>`;
         const btn = r.present === 'NON'
           ? `<button class="btn danger" data-ouvrier="${encodeURIComponent(r.ouvrier)}">Absent+15js</button>`
           : '';
@@ -252,12 +252,12 @@
         if (!btn) return;
 
         const f = filters();
-        if (!f.pm) { alert("Sélectionne d'abord un PM (utilisateur)."); return; }
-
-        const url = window.ATTESTATION_COLLECT_URL;
-        if (!url) { alert("ATTESTATION_COLLECT_URL non configurée (Apps Script)."); return; }
+        if (!f.pm) { alert("Sélectionne d'abord un PM."); return; }
 
         const ouvrier = decodeURIComponent(btn.dataset.ouvrier);
+        const url = window.ATTESTATION_COLLECT_URL;
+        if (!url) { alert("ATTESTATION_COLLECT_URL non configurée."); return; }
+
         const payload = { data: { ...f, ouvrier, user: f.pm, flag: 'Absent+15js' } };
 
         await fetch(url, {
