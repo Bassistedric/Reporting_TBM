@@ -40,3 +40,9 @@ index 0000000000000000000000000000000000000000..f9e98ca23ca35a8f8794ced4f7a10d45
 +function respond(obj) {
 +  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 +}
+export const APP_NAME = "tbPM";
+
+if (typeof window !== 'undefined') {
+  Object.assign(window, { APP_NAME, SHEET_BASE_URL, METIER_TO_GID, TBM_GID, SUIVI_PMS_CSV_URL, COLLECT_URL, ATTESTATION_COLLECT_URL });
+}
+
