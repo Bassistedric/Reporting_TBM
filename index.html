@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>tbPM</title>
+  <title>QHSE – Portail</title>
   <style>
     :root{
       --vma-blue:#104861;
@@ -13,7 +13,7 @@
       --text:#111827;
       --muted:#6b7280;
       --shadow:0 8px 20px rgba(0,0,0,.06);
-      --radius:16px;
+      --radius:18px;
     }
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
     .wrap{max-width:520px;margin:0 auto;padding:14px;}
@@ -25,56 +25,75 @@
     }
     .subtitle{margin:10px 0 14px;color:var(--muted);font-size:13px;text-align:center}
     .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:10px;}
-    .btn{
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      padding:14px 14px;border:1px solid var(--border);
-      background:var(--card);border-radius:var(--radius);
-      box-shadow:var(--shadow);text-decoration:none;color:inherit;
+
+    /* Tile style (comme ton exemple) */
+    .tile{
+      display:flex;align-items:center;gap:14px;
+      padding:14px 14px;
+      border:1px solid var(--border);
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      text-decoration:none;color:inherit;
     }
-    .btn:active{transform:translateY(1px)}
-    .left{display:flex;align-items:center;gap:12px}
+    .tile:active{transform:translateY(1px)}
+    .iconBox{
+      width:56px;height:56px;border-radius:16px;
+      display:flex;align-items:center;justify-content:center;
+      border:1px solid var(--border);
+      background:#fff;
+      flex:0 0 auto;
+    }
     .icon{
-      width:44px;height:44px;border-radius:12px;
-      display:inline-flex;align-items:center;justify-content:center;
-      background:#eef2f6;border:1px solid var(--border);
-      font-weight:800;color:var(--vma-blue);
+      width:26px;height:26px;
+      display:block;
     }
-    .label{font-weight:800}
-    .desc{font-size:12px;color:var(--muted);margin-top:2px}
-    .chev{font-size:18px;color:#9ca3af}
+    .tText{flex:1}
+    .tTitle{font-weight:900}
+    .tDesc{font-size:12px;color:var(--muted);margin-top:2px}
+    .chev{font-size:18px;color:#9ca3af;padding-left:6px}
+
     .footer{margin-top:16px;text-align:center;color:var(--muted);font-size:12px}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="title">tbPM</div>
-    <div class="subtitle">Portail reporting (TBM aujourd’hui, extensible ILT demain).</div>
+    <div class="title">Portail QHSE</div>
+    <div class="subtitle">Choisir un module</div>
 
     <div class="grid">
-      <a class="btn" href="./attestation.html">
-        <div class="left">
-          <div class="icon">TBM</div>
-          <div>
-            <div class="label">Présences chantier</div>
-            <div class="desc">Filtrer (métier, semaine, PM, chantier) et signaler un absent.</div>
-          </div>
+      <!-- tbPM tile -->
+      <a class="tile" href="./tbpm.html" aria-label="tbPM">
+        <div class="iconBox" aria-hidden="true">
+          <!-- Icône simple “toolbox” (SVG inline) -->
+          <svg class="icon" viewBox="0 0 24 24" fill="none">
+            <path d="M9 7V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1" stroke="#E11D48" stroke-width="2" stroke-linecap="round"/>
+            <path d="M4 10a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-7Z" stroke="#E11D48" stroke-width="2"/>
+            <path d="M4 13h16" stroke="#E11D48" stroke-width="2" stroke-linecap="round"/>
+            <path d="M11 12h2" stroke="#E11D48" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="tText">
+          <div class="tTitle">tbPM</div>
+          <div class="tDesc">Toolbox meeting</div>
         </div>
         <div class="chev">›</div>
       </a>
 
-      <a class="btn" href="./reporting_pms.html">
-        <div class="left">
-          <div class="icon">PM</div>
-          <div>
-            <div class="label">Suivi PM</div>
-            <div class="desc">Vision globale : équipes, statuts et dernier TBM.</div>
-          </div>
+      <!-- Placeholders futurs -->
+      <!--
+      <a class="tile" href="#" style="opacity:.55;pointer-events:none;">
+        <div class="iconBox"><span style="font-weight:900;color:#111827">ILT</span></div>
+        <div class="tText">
+          <div class="tTitle">ILT</div>
+          <div class="tDesc">Inspections de lieux de travail (bientôt)</div>
         </div>
         <div class="chev">›</div>
       </a>
+      -->
     </div>
 
-    <div class="footer">v1 — tbPM</div>
+    <div class="footer">v1</div>
   </div>
 </body>
 </html>
