@@ -3,18 +3,78 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Reporting TBM</title>
+  <title>tbPM</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px}
-    a{display:inline-block;margin:8px 0}
-    .card{border:1px solid #ddd;border-radius:12px;padding:16px;max-width:720px}
+    :root{
+      --vma-blue:#104861;
+      --bg:#f5f6f8;
+      --card:#ffffff;
+      --border:#e6e6e6;
+      --text:#111827;
+      --muted:#6b7280;
+      --shadow:0 8px 20px rgba(0,0,0,.06);
+      --radius:16px;
+    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+    .wrap{max-width:520px;margin:0 auto;padding:14px;}
+    .title{
+      background:var(--vma-blue); color:#D9D9D9;
+      border-radius:14px; padding:14px 16px;
+      text-align:center; font-weight:800; letter-spacing:.3px;
+      box-shadow:var(--shadow);
+    }
+    .subtitle{margin:10px 0 14px;color:var(--muted);font-size:13px;text-align:center}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:10px;}
+    .btn{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:14px 14px;border:1px solid var(--border);
+      background:var(--card);border-radius:var(--radius);
+      box-shadow:var(--shadow);text-decoration:none;color:inherit;
+    }
+    .btn:active{transform:translateY(1px)}
+    .left{display:flex;align-items:center;gap:12px}
+    .icon{
+      width:44px;height:44px;border-radius:12px;
+      display:inline-flex;align-items:center;justify-content:center;
+      background:#eef2f6;border:1px solid var(--border);
+      font-weight:800;color:var(--vma-blue);
+    }
+    .label{font-weight:800}
+    .desc{font-size:12px;color:var(--muted);margin-top:2px}
+    .chev{font-size:18px;color:#9ca3af}
+    .footer{margin-top:16px;text-align:center;color:var(--muted);font-size:12px}
   </style>
 </head>
 <body>
-  <h2>Reporting TBM</h2>
-  <div class="card">
-    <div><a href="./attestation.html">Attestation TBM</a></div>
-    <div><a href="./reporting_pms.html">Suivi PM (OUI/NON)</a></div>
+  <div class="wrap">
+    <div class="title">tbPM</div>
+    <div class="subtitle">Portail reporting (TBM aujourd’hui, extensible ILT demain).</div>
+
+    <div class="grid">
+      <a class="btn" href="./attestation.html">
+        <div class="left">
+          <div class="icon">TBM</div>
+          <div>
+            <div class="label">Présences chantier</div>
+            <div class="desc">Filtrer (métier, semaine, PM, chantier) et signaler un absent.</div>
+          </div>
+        </div>
+        <div class="chev">›</div>
+      </a>
+
+      <a class="btn" href="./reporting_pms.html">
+        <div class="left">
+          <div class="icon">PM</div>
+          <div>
+            <div class="label">Suivi PM</div>
+            <div class="desc">Vision globale : équipes, statuts et dernier TBM.</div>
+          </div>
+        </div>
+        <div class="chev">›</div>
+      </a>
+    </div>
+
+    <div class="footer">v1 — tbPM</div>
   </div>
 </body>
 </html>
