@@ -1,6 +1,7 @@
 {
-  "name": "VMA Tools",
-  "short_name": "tbPM",
+  "name": "QH tools SE",
+  "short_name": "QH tools SE",
+  "description": "Portail tbPM (Reporting / Présences chantier / Suivi PM)",
   "start_url": "./tbpm.html",
   "scope": "./",
   "display": "standalone",
@@ -11,3 +12,4 @@
     { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
+
