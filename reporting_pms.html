@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#104861" />
   <title>tbPM — Suivi PM</title>
   <style>
@@ -88,7 +88,6 @@
         </table>
       </div>
     </div>
-
   </div>
 
   <script src="./sheetConfig.js"></script>
@@ -228,12 +227,9 @@
 
     async function load() {
       const url = window.SUIVI_PMS_CSV_URL;
-      if (!url) {
-        status.textContent = "SUIVI_PMS_CSV_URL manquant dans sheetConfig.js";
-        return;
-      }
-      status.textContent = "Chargement CSV…";
+      if (!url) { status.textContent = "SUIVI_PMS_CSV_URL manquant dans sheetConfig.js"; return; }
 
+      status.textContent = "Chargement CSV…";
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const text = await res.text();
@@ -273,10 +269,7 @@
 
     function hook() {
       [selMetier, selWeek, selPM, selChantier, selCE].forEach(s=>{
-        s.addEventListener('change', () => {
-          rebuildDropdowns();
-          applyFilters();
-        });
+        s.addEventListener('change', () => { rebuildDropdowns(); applyFilters(); });
       });
       el('btnReset').addEventListener('click', () => {
         selMetier.value = '';
