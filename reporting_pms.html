@@ -3,115 +3,96 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Reporting TBM – Suivi PM</title>
+  <title>tbPM — Suivi PM</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:16px;}
-    .card{border:1px solid #ddd;border-radius:10px;padding:12px;margin:12px 0;}
-    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
-    label{display:block;font-size:12px;color:#444;margin-bottom:4px}
-    select,input{padding:8px;border:1px solid #ccc;border-radius:8px;min-width:180px}
+    :root{
+      --vma-blue:#104861;
+      --bg:#f5f6f8;
+      --card:#ffffff;
+      --border:#e6e6e6;
+      --text:#111827;
+      --muted:#6b7280;
+      --shadow:0 8px 20px rgba(0,0,0,.06);
+      --radius:16px;
+      --ok-bg:#e8f5e9; --ok:#1b5e20;
+      --no-bg:#ffebee; --no:#b71c1c;
+    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+    .wrap{max-width:1100px;margin:0 auto;padding:14px;}
+    .topbar{position:sticky;top:0;z-index:10;background:rgba(245,246,248,.92);backdrop-filter:blur(8px);padding:10px 0;}
+    .rowTop{display:flex;align-items:center;gap:10px;justify-content:space-between;}
+    .back{border:1px solid var(--border);background:#fff;border-radius:12px;padding:8px 10px;cursor:pointer}
+    .title{
+      flex:1;
+      background:var(--vma-blue); color:#D9D9D9;
+      border-radius:14px; padding:10px 14px;
+      text-align:center; font-weight:800; letter-spacing:.3px;
+      box-shadow:var(--shadow);
+    }
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px;margin-top:12px;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+    label{display:block;font-size:12px;color:#374151;margin-bottom:4px}
+    select{padding:10px;border:1px solid #d1d5db;border-radius:12px;background:#fff;min-width:180px}
     table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
-    th,td{border-bottom:1px solid #eee;padding:8px;text-align:left}
+    th,td{border-bottom:1px solid #eee;padding:10px;text-align:left}
     th{position:sticky;top:0;background:#fff;z-index:1}
-    .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-weight:600;font-size:12px}
-    .oui{background:#e8f5e9;color:#1b5e20}
-    .non{background:#ffebee;color:#b71c1c}
-    .muted{color:#666;font-size:12px}
-    .kpi{display:flex;gap:16px;flex-wrap:wrap}
-    .kpi div{padding:8px 12px;border:1px solid #eee;border-radius:10px}
-    .btn{cursor:pointer;border:1px solid #ccc;border-radius:10px;padding:8px 12px;background:#fff}
+    .muted{color:var(--muted);font-size:12px}
+    .kpi{display:flex;gap:12px;flex-wrap:wrap}
+    .kpi .box{padding:10px 12px;border:1px solid #eee;border-radius:14px;background:#fff}
+    .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-weight:800;font-size:12px}
+    .fait{background:var(--ok-bg);color:var(--ok)}
+    .afaire{background:var(--no-bg);color:var(--no)}
+    .btn{border:1px solid var(--border);background:#fff;border-radius:12px;padding:10px 12px;cursor:pointer}
     .btn:active{transform:translateY(1px)}
   </style>
 </head>
 <body>
-  <h2>Reporting TBM – Suivi PM</h2>
-  <div class="muted">
-    Source : feuille <b>SUIVI_PMS</b> publiée en CSV.
-    <br>Règle statut : <b>OUI</b> si l’ouvrier a eu un TBM <b>au moins une fois dans le mois</b> (mois correspondant à la semaine sélectionnée), <b>quel que soit le chantier</b>.
-  </div>
-
-  <div class="card">
-    <div class="row">
-      <div>
-        <label>Métier</label>
-        <select id="selMetier"></select>
-      </div>
-      <div>
-        <label>Semaine</label>
-        <select id="selWeek"></select>
-      </div>
-      <div>
-        <label>PM</label>
-        <select id="selPM"></select>
-      </div>
-      <div>
-        <label>Chantier</label>
-        <select id="selChantier"></select>
-      </div>
-      <div>
-        <label>Chef d’équipe (optionnel)</label>
-        <select id="selCE"></select>
-      </div>
-
-      <div>
-        <button class="btn" id="btnReset">Réinitialiser</button>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="rowTop">
+        <button class="back" onclick="location.href='./index.html'">← Retour</button>
+        <div class="title">Suivi PM</div>
+        <div style="width:74px"></div>
       </div>
     </div>
 
-    <div class="kpi" style="margin-top:10px">
-      <div><b>Total</b><br><span id="kpiTotal">-</span></div>
-      <div><b>OUI</b><br><span id="kpiOui">-</span></div>
-      <div><b>NON</b><br><span id="kpiNon">-</span></div>
-      <div><b>% fait</b><br><span id="kpiPct">-</span></div>
+    <div class="card">
+      <div class="row">
+        <div><label>Métier</label><select id="selMetier"></select></div>
+        <div><label>Semaine</label><select id="selWeek"></select></div>
+        <div><label>PM</label><select id="selPM"></select></div>
+        <div><label>Chantier</label><select id="selChantier"></select></div>
+        <div><label>Chef d’équipe (optionnel)</label><select id="selCE"></select></div>
+        <div><button class="btn" id="btnReset">Réinitialiser</button></div>
+      </div>
+
+      <div class="kpi" style="margin-top:12px">
+        <div class="box"><b>Total</b><br><span id="kpiTotal">-</span></div>
+        <div class="box"><b>Fait</b><br><span id="kpiFait">-</span></div>
+        <div class="box"><b>À faire</b><br><span id="kpiAFaire">-</span></div>
+        <div class="box"><b>%</b><br><span id="kpiPct">-</span></div>
+      </div>
     </div>
+
+    <div class="card">
+      <div class="muted" id="status">Chargement…</div>
+      <div style="overflow:auto;max-height:70vh">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th>Semaine</th><th>Métier</th><th>PM</th><th>Chantier</th><th>ChefEquipe</th><th>Ouvrier</th><th>Statut</th><th>Dernier TBM</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 
-  <div class="card">
-    <div class="muted" id="status">Chargement…</div>
-    <div style="overflow:auto;max-height:70vh">
-      <table id="tbl">
-        <thead>
-          <tr>
-            <th>Semaine</th><th>Métier</th><th>PM</th><th>Chantier</th><th>ChefEquipe</th><th>Ouvrier</th><th>Statut (mois)</th><th>Dernier TBM (mois)</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Config globale -->
   <script src="./sheetConfig.js"></script>
-
   <script>
-    // ---- Utils
     const norm = (s) => String(s ?? '').trim().toUpperCase().replace(/\s+/g,' ');
-    const pad2 = (n)=> String(n).padStart(2,'0');
-
-    // ISO week -> date du lundi (UTC) pour déterminer le mois
-    function isoWeekMonday(year, week) {
-      const jan4 = new Date(Date.UTC(year, 0, 4));
-      const day = jan4.getUTCDay() || 7; // 1..7
-      const mondayWeek1 = new Date(jan4);
-      mondayWeek1.setUTCDate(jan4.getUTCDate() - (day - 1));
-      const monday = new Date(mondayWeek1);
-      monday.setUTCDate(mondayWeek1.getUTCDate() + (week - 1) * 7);
-      return monday;
-    }
-    function yearMonthFromWeek(year, week) {
-      const d = isoWeekMonday(year, week);
-      return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}`; // "YYYY-MM"
-    }
-    function ymFromDateStr(s) {
-      s = String(s||'').trim();
-      if (!s) return '';
-      let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-      if (m) return `${m[1]}-${m[2]}`;
-      m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-      if (m) return `${m[3]}-${m[2]}`;
-      return '';
-    }
-
     const parseCsv = (text) => {
       const rows = [];
       let i=0, field='', row=[], inQ=false;
@@ -133,7 +114,6 @@
       return rows;
     };
 
-    // ---- DOM
     const el = (id) => document.getElementById(id);
     const selMetier = el('selMetier');
     const selWeek = el('selWeek');
@@ -160,11 +140,8 @@
       else select.value = '';
     };
 
-    // ---- Data
-    let data = []; // [{generatedAt,week,metier,pm,chantier,ce,ouvrier,last}]
+    let data = [];
     let loadedAt = '';
-    let yearRef = new Date().getFullYear();
-    let tbmMonthIndex = new Map(); // key = METIER|YYYY-MM|OUVRIER -> lastTBMDate (max)
 
     function currentFilters() {
       return {
@@ -176,94 +153,50 @@
       };
     }
 
-    function getMonthStatus(metier, week, ouvrier) {
-      const w = parseInt(week, 10);
-      if (!w) return {present:'NON', last:''};
-      const ym = yearMonthFromWeek(yearRef, w);
-      const key = `${norm(metier)}|${ym}|${norm(ouvrier)}`;
-      const last = tbmMonthIndex.get(key) || '';
-      return { present: last ? 'OUI' : 'NON', last };
-    }
-
     function applyFilters() {
-  const f = currentFilters();
+      const f = currentFilters();
+      const out = data.filter(r =>
+        (!f.metier || r.metier === f.metier) &&
+        (!f.week || String(r.week) === String(f.week)) &&
+        (!f.pm || r.pm === f.pm) &&
+        (!f.chantier || r.chantier === f.chantier) &&
+        (!f.ce || r.ce === f.ce)
+      );
 
-  // 1) on filtre la population de la semaine (PM/chantier/CE)
-  const scoped = data.filter(r =>
-    (!f.metier || r.metier === f.metier) &&
-    (!f.week || String(r.week) === String(f.week)) &&
-    (!f.pm || r.pm === f.pm) &&
-    (!f.chantier || r.chantier === f.chantier) &&
-    (!f.ce || r.ce === f.ce)
-  );
+      const total = out.length;
+      const fait = out.filter(r=>r.present==='OUI').length;
+      const afaire = out.filter(r=>r.present==='NON').length;
+      el('kpiTotal').textContent = total || 0;
+      el('kpiFait').textContent = fait || 0;
+      el('kpiAFaire').textContent = afaire || 0;
+      el('kpiPct').textContent = total ? Math.round((fait/total)*100) + '%' : '-';
 
-  // 2) dédoublonnage par ouvrier: on garde OUI si au moins un OUI dans le mois
-  const byWorker = new Map(); // key = OUVRIER_NORM -> row affichée
-  for (const r of scoped) {
-    const ms = getMonthStatus(r.metier, f.week || r.week, r.ouvrier);
-    const presentMonth = ms.present;
-    const lastMonth = ms.last;
+      tbody.innerHTML = '';
+      out
+        .sort((a,b)=> (a.week-b.week) || a.pm.localeCompare(b.pm) || a.chantier.localeCompare(b.chantier) || a.ce.localeCompare(b.ce) || a.ouvrier.localeCompare(b.ouvrier))
+        .forEach(r=>{
+          const tr=document.createElement('tr');
+          const pill = r.present === 'OUI'
+            ? `<span class="pill fait">FAIT</span>`
+            : `<span class="pill afaire">À FAIRE</span>`;
+          tr.innerHTML = `
+            <td>${r.week}</td>
+            <td>${r.metier}</td>
+            <td>${r.pm}</td>
+            <td>${r.chantier}</td>
+            <td>${r.ce}</td>
+            <td>${r.ouvrier}</td>
+            <td>${pill}</td>
+            <td>${r.last || ''}</td>
+          `;
+          tbody.appendChild(tr);
+        });
 
-    const k = norm(r.ouvrier);
-
-    if (!byWorker.has(k)) {
-      byWorker.set(k, { ...r, presentMonth, lastMonth });
-    } else {
-      const cur = byWorker.get(k);
-
-      // priorité au OUI
-      if (cur.presentMonth !== 'OUI' && presentMonth === 'OUI') {
-        byWorker.set(k, { ...r, presentMonth, lastMonth });
-        continue;
-      }
-
-      // si les deux sont OUI: garder la date la plus récente
-      if (cur.presentMonth === 'OUI' && presentMonth === 'OUI') {
-        if (String(lastMonth) > String(cur.lastMonth || '')) {
-          byWorker.set(k, { ...r, presentMonth, lastMonth });
-        }
-      }
+      status.textContent = `Lignes affichées : ${total} | Dernière génération: ${loadedAt || '-'} `;
     }
-  }
-
-  const out = Array.from(byWorker.values());
-
-  // KPIs
-  const total = out.length;
-  const oui = out.filter(r=>r.presentMonth==='OUI').length;
-  const non = out.filter(r=>r.presentMonth==='NON').length;
-  el('kpiTotal').textContent = total;
-  el('kpiOui').textContent = oui;
-  el('kpiNon').textContent = non;
-  el('kpiPct').textContent = total ? Math.round((oui/total)*100) + '%' : '-';
-
-  // Table
-  tbody.innerHTML = '';
-  out
-    .sort((a,b)=> (a.week-b.week) || a.pm.localeCompare(b.pm) || a.chantier.localeCompare(b.chantier) || a.ce.localeCompare(b.ce) || a.ouvrier.localeCompare(b.ouvrier))
-    .forEach(r=>{
-      const tr=document.createElement('tr');
-      const pill = `<span class="pill ${r.presentMonth==='OUI'?'oui':'non'}">${r.presentMonth}</span>`;
-      tr.innerHTML = `
-        <td>${r.week}</td>
-        <td>${r.metier}</td>
-        <td>${r.pm}</td>
-        <td>${r.chantier}</td>
-        <td>${r.ce}</td>
-        <td>${r.ouvrier}</td>
-        <td>${pill}</td>
-        <td>${r.lastMonth || ''}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-  status.textContent = `Lignes affichées : ${total} | Dernière génération CSV: ${loadedAt || '-'} | Année réf: ${yearRef}`;
-}
-
 
     function rebuildDropdowns() {
       const f = currentFilters();
-
       const metiers = [...new Set(data.map(r=>r.metier))].sort();
       setOptions(selMetier, metiers, '(Tous)');
 
@@ -314,6 +247,7 @@
         chantier: head.indexOf('Chantier'),
         ce: head.indexOf('ChefEquipe'),
         ouvrier: head.indexOf('Ouvrier'),
+        present: head.indexOf('PresentTBM'),
         last: head.indexOf('LastTBMDate')
       };
 
@@ -327,29 +261,11 @@
           chantier: String(r[idx.chantier]||'').trim(),
           ce: String(r[idx.ce]||'').trim(),
           ouvrier: String(r[idx.ouvrier]||'').trim(),
+          present: norm(r[idx.present]) === 'OUI' ? 'OUI' : 'NON',
           last: String(r[idx.last]||'').trim()
         }));
 
       loadedAt = data.length ? (data[0].generatedAt || '') : '';
-
-      // Année de référence (tu m’as dit: une seule année dans tbm)
-      // => on prend l’année du GeneratedAt si possible, sinon année courante.
-      yearRef = (() => {
-        const s = data[0]?.generatedAt || '';
-        const d = new Date(s);
-        return (d instanceof Date && !isNaN(d)) ? d.getFullYear() : new Date().getFullYear();
-      })();
-
-      // Index "TBM déjà fait dans le mois" basé sur LastTBMDate
-      tbmMonthIndex = new Map();
-      for (const r of data) {
-        const ym = ymFromDateStr(r.last);
-        if (!ym) continue;
-        const key = `${r.metier}|${ym}|${norm(r.ouvrier)}`;
-        const prev = tbmMonthIndex.get(key);
-        if (!prev || String(r.last) > String(prev)) tbmMonthIndex.set(key, r.last);
-      }
-
       rebuildDropdowns();
       applyFilters();
     }
