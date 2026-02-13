@@ -1,6 +1,6 @@
 {
-  "name": "QH tools SE",
-  "short_name": "QH tools SE",
+  "name": "QHSE Tools",
+  "short_name": "QHSE Tools",
   "description": "Portail tbPM (Reporting / Présences chantier / Suivi PM)",
   "start_url": "./tbpm.html",
   "scope": "./",
