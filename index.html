@@ -1,37 +1,77 @@
-
 <!doctype html>
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#111827" />
-  <title>QHSE – Apps</title>
-
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="theme-color" content="#104861" />
+  <title>QHSE – Portail</title>
   <style>
-    @media print{header,footer,.no-print{display:none!important}main{max-width:100%!important}section{page-break-inside:avoid}}
-    .card{ @apply bg-white rounded-2xl shadow p-4 mb-4; }
+    :root{
+      --vma-blue:#104861;
+      --bg:#f5f6f8;
+      --card:#ffffff;
+      --border:#e6e6e6;
+      --text:#111827;
+      --muted:#6b7280;
+      --shadow:0 8px 20px rgba(0,0,0,.06);
+      --radius:18px;
+    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+    .wrap{max-width:520px;margin:0 auto;padding:14px;}
+    .title{
+      background:var(--vma-blue); color:#D9D9D9;
+      border-radius:14px; padding:10px 14px;
+      text-align:center; font-weight:800; letter-spacing:.3px;
+      box-shadow:var(--shadow);
+      margin:12px 0 14px;
+    }
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+    a.tile{display:block;text-decoration:none;color:inherit;}
+    .tileBox{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+      display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;
+      transition:transform .06s ease;
+      min-height:140px;
+    }
+    .tileBox:active{transform:translateY(1px);}
+    .ico{
+      width:60px;height:60px;border-radius:18px;
+      background:#eef2f7;border:1px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      font-size:26px;
+    }
+    .tileName{font-weight:800}
+    .tileDesc{font-size:12px;color:var(--muted)}
+    .disabled{opacity:.45;pointer-events:none}
   </style>
 </head>
-<body class="min-h-screen bg-gray-50">
-  <div id="root"></div>
+<body>
+  <div class="wrap">
+    <div class="title">Portail</div>
 
-  <!-- PWA / Service Worker (bump ?v=... pour forcer la MAJ) -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () =>
-        navigator.serviceWorker.register('./sw.js?v=v5').catch(console.error)
-      );
-    }
-  </script>
-  <!-- Third-party libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <!-- Bundled React app -->
-  <script type="module" src="dist/bundle.js"></script>
+    <div class="grid">
+      <!-- Tuile tbPM -->
+      <a class="tile" href="./tbpm.html">
+        <div class="tileBox">
+          <div class="ico">🧰</div>
+          <div class="tileName">tbPM</div>
+          <div class="tileDesc">Toolbox / suivi équipe</div>
+        </div>
+      </a>
+
+      <!-- Placeholder futur (ILT, etc.) -->
+      <a class="tile disabled" href="#">
+        <div class="tileBox">
+          <div class="ico">📝</div>
+          <div class="tileName">ILT</div>
+          <div class="tileDesc">Bientôt</div>
+        </div>
+      </a>
+    </div>
+  </div>
 </body>
 </html>
