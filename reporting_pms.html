@@ -93,6 +93,12 @@
   <script src="./sheetConfig.js"></script>
   <script>
     const norm = (s) => String(s ?? '').trim().toUpperCase().replace(/\s+/g,' ');
+
+    const withCacheBust = (url) => {
+      const u = new URL(url, window.location.href);
+      u.searchParams.set('_ts', String(Date.now()));
+      return u.toString();
+    };
     const parseCsv = (text) => {
       const rows = [];
       let i=0, field='', row=[], inQ=false;
@@ -230,7 +236,7 @@
       if (!url) { status.textContent = "SUIVI_PMS_CSV_URL manquant dans sheetConfig.js"; return; }
 
       status.textContent = "Chargement CSV…";
-      const res = await fetch(url, { cache: 'no-store' });
+      const res = await fetch(withCacheBust(url), { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const text = await res.text();
       const rows = parseCsv(text);
