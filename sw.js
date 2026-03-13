@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tbpm-cache-v1';
+const CACHE_NAME = 'tbpm-cache-v2';
 const ASSETS = [
   './',
   './tbpm.html',
@@ -27,6 +27,28 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
+
+  const url = new URL(req.url);
+  const isSheetCsv =
+    url.hostname === 'docs.google.com' &&
+    url.pathname.includes('/spreadsheets/') &&
+    url.searchParams.get('output') === 'csv';
+  const isDynamicConfig = url.pathname.endsWith('/sheetConfig.js');
+
+  // Données dynamiques : prioriser le réseau pour éviter une application bloquée
+  // sur une ancienne semaine en cas de cache PWA stale.
+  if (isSheetCsv || isDynamicConfig) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return res;
+        })
+        .catch(() => caches.match(req))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(req).then(cached => {
