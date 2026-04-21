@@ -6,7 +6,6 @@
   <meta name="theme-color" content="#104861" />
   <title>VMA Tools — tbPM</title>
 
-  <!-- PWA -->
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -22,57 +21,51 @@
       --muted:#6b7280;
       --shadow:0 10px 26px rgba(0,0,0,.08);
       --radius:18px;
+      --ok-bg:#e8f5e9;
+      --ok:#1b5e20;
+      --nok-bg:#ffebee;
+      --nok:#b71c1c;
+      --warn-bg:#fff8e1;
+      --warn:#8a5200;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
-    .wrap{max-width:520px;margin:0 auto;padding:14px;}
+    .wrap{max-width:1180px;margin:0 auto;padding:14px;}
     .topbar{position:sticky;top:0;z-index:10;background:rgba(245,246,248,.92);backdrop-filter:blur(8px);padding:10px 0;}
     .rowTop{display:flex;align-items:center;gap:10px;justify-content:space-between;}
     .back{border:1px solid var(--border);background:#fff;border-radius:14px;padding:10px 12px;cursor:pointer}
-    .title{
-      flex:1;
-      background:var(--vma-blue); color:#D9D9D9;
-      border-radius:16px; padding:12px 14px;
-      text-align:center; font-weight:900; letter-spacing:.3px;
-      box-shadow:var(--shadow);
+    .title{flex:1;background:var(--vma-blue);color:#D9D9D9;border-radius:16px;padding:12px 14px;text-align:center;font-weight:900;letter-spacing:.3px;box-shadow:var(--shadow)}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-top:12px;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+    .field{min-width:160px;flex:1}
+    label{display:block;font-size:12px;color:#374151;margin-bottom:4px}
+    select,button{padding:10px;border:1px solid #d1d5db;border-radius:12px;background:#fff}
+    select{width:100%}
+    .btn{cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+    .btnPrimary{background:var(--vma-blue);color:#fff;border-color:var(--vma-blue)}
+    .muted{color:var(--muted);font-size:12px}
+    .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .kpi{padding:12px;border:1px solid var(--border);border-radius:14px;background:#fff}
+    .kpi b{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+    .kpi span{font-size:24px;font-weight:900}
+    .tableWrap{overflow:auto;max-height:70vh;border-radius:14px}
+    table{width:100%;border-collapse:collapse;font-size:14px;background:#fff}
+    th,td{border-bottom:1px solid #eee;padding:10px;text-align:left;vertical-align:top}
+    th{position:sticky;top:0;background:#fff;z-index:1}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:800;font-size:12px;white-space:nowrap}
+    .ok{background:var(--ok-bg);color:var(--ok)}
+    .nok{background:var(--nok-bg);color:var(--nok)}
+    .warn{background:var(--warn-bg);color:var(--warn)}
+    .sectionTitle{font-weight:900;margin:0 0 8px}
+    .sourceBox{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .summaryTable td,.summaryTable th{padding:9px 10px}
+    .actionsCell{white-space:nowrap}
+    @media (max-width:760px){
+      .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
-    .muted{color:var(--muted);font-size:12px;margin-top:10px}
-
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-    .tile{
-      display:flex;flex-direction:column;gap:10px;
-      align-items:center;justify-content:center;
-      min-height:140px;
-      border:1px solid var(--border);
-      background:var(--card);
-      border-radius:22px;
-      box-shadow:var(--shadow);
-      text-decoration:none;color:inherit;
-      padding:14px;
-      cursor:pointer;
-      user-select:none;
-    }
-    .tile:active{transform:translateY(1px)}
-    .iconWrap{
-      width:62px;height:62px;border-radius:18px;
-      background:rgba(16,72,97,.10);
-      display:flex;align-items:center;justify-content:center;
-      border:1px solid rgba(16,72,97,.18);
-    }
-    .tileTitle{font-weight:900;font-size:16px;letter-spacing:.2px}
-    .tileSub{font-size:12px;color:var(--muted);text-align:center;line-height:1.2}
-    .footer{margin-top:14px;font-size:12px;color:var(--muted);text-align:center}
-    .brandRow{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
-    .pill{
-      font-size:12px;
-      padding:6px 10px;border-radius:999px;
-      border:1px solid var(--border);background:#fff;
-      color:var(--muted)
-    }
-
-    @media (max-width:380px){
-      .grid{grid-template-columns:1fr}
-      .tile{min-height:120px}
+    @media (max-width:480px){
+      .kpis{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -86,59 +79,454 @@
       </div>
     </div>
 
-    <div class="brandRow">
-      <div class="pill">VMA Tools</div>
-      <div class="pill">Module : TBM</div>
+    <div class="card">
+      <div class="sectionTitle">Vue de suivi TBM</div>
+      <div class="muted">Version unifiée. On arrive directement sur les données. La logique privilégie d'abord une source consolidée. À défaut, elle retombe sur le CSV actuel.</div>
+      <div class="sourceBox" style="margin-top:8px">
+        <span class="pill warn" id="sourceMode">Source : chargement…</span>
+        <span class="muted" id="status">Chargement…</span>
+      </div>
     </div>
 
-    <div class="muted">
-      Choisis une action. (Plus tard : ILT, audits, etc.)
+    <div class="card">
+      <div class="row">
+        <div class="field"><label>Métier</label><select id="selMetier"></select></div>
+        <div class="field"><label>Mois</label><select id="selMonth"></select></div>
+        <div class="field"><label>Chantier</label><select id="selChantier"></select></div>
+        <div class="field"><label>Semaine ISO</label><select id="selWeek"></select></div>
+        <div class="field"><label>Jour</label><select id="selDay"></select></div>
+        <div class="field"><label>Chef d’équipe</label><select id="selCE"></select></div>
+        <div class="field"><label>PM</label><select id="selPM"></select></div>
+        <div><button class="btn" id="btnReset">Réinitialiser</button></div>
+      </div>
     </div>
 
-    <div class="grid">
-      <a class="tile" href="./attestation.html" aria-label="Présences chantier">
-        <div class="iconWrap" aria-hidden="true">
-          <!-- icon: clipboard-check -->
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-            <path d="M9 6h6" stroke="#104861" stroke-width="2" stroke-linecap="round"/>
-            <path d="M9 10h6" stroke="#104861" stroke-width="2" stroke-linecap="round"/>
-            <path d="M9 14h3" stroke="#104861" stroke-width="2" stroke-linecap="round"/>
-            <path d="M16 3h-1.2a2 2 0 0 0-1.8-1h-2a2 2 0 0 0-1.8 1H8a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8" stroke="#104861" stroke-width="2" stroke-linejoin="round"/>
-            <path d="M16 6l2 2 4-4" stroke="#104861" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <div class="tileTitle">Présences chantier</div>
-        <div class="tileSub">Signaler rapidement un “Absent +15j”</div>
-      </a>
-
-      <a class="tile" href="./reporting_pms.html" aria-label="Suivi PM">
-        <div class="iconWrap" aria-hidden="true">
-          <!-- icon: chart -->
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
-            <path d="M4 19V5" stroke="#104861" stroke-width="2" stroke-linecap="round"/>
-            <path d="M4 19h16" stroke="#104861" stroke-width="2" stroke-linecap="round"/>
-            <path d="M8 16v-5" stroke="#104861" stroke-width="2" stroke-linecap="round"/>
-            <path d="M12 16V9" stroke="#104861" stroke-width="2" stroke-linecap="round"/>
-            <path d="M16 16V7" stroke="#104861" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="tileTitle">Suivi PM</div>
-        <div class="tileSub">Vue filtrée + KPI (fait / à faire)</div>
-      </a>
+    <div class="card">
+      <div class="kpis">
+        <div class="kpi"><b>Total</b><span id="kpiTotal">-</span></div>
+        <div class="kpi"><b>OK</b><span id="kpiOk">-</span></div>
+        <div class="kpi"><b>NOK</b><span id="kpiNok">-</span></div>
+        <div class="kpi"><b>% OK</b><span id="kpiPct">-</span></div>
+      </div>
     </div>
 
-    <div class="footer">
-      Astuce : une fois en PWA, ça ressemble à une vraie appli.
+    <div class="card" id="globalSummaryCard">
+      <div class="sectionTitle">Résumé par métier</div>
+      <div class="muted">S’affiche quand aucun métier n’est sélectionné.</div>
+      <div class="tableWrap" style="max-height:none;margin-top:10px">
+        <table class="summaryTable">
+          <thead>
+            <tr><th>Métier</th><th>OK</th><th>NOK</th><th>Total</th><th>% OK</th></tr>
+          </thead>
+          <tbody id="summaryBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sectionTitle">Détail nominatif</div>
+      <div class="tableWrap">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th>Métier</th>
+              <th>Mois</th>
+              <th>Semaine</th>
+              <th>Jour</th>
+              <th>Chantier</th>
+              <th>PM</th>
+              <th>ChefEquipe</th>
+              <th>Equipe</th>
+              <th>Ouvrier</th>
+              <th>Statut</th>
+              <th>Dernier TBM</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- Service Worker (bump ?v=... si besoin) -->
+  <script src="./sheetConfig.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=v2').catch(console.error);
+    const norm = (s) => String(s ?? '').trim().toUpperCase().replace(/\s+/g, ' ');
+    const text = (s) => String(s ?? '').trim();
+    const el = (id) => document.getElementById(id);
+    const withCacheBust = (url) => {
+      const u = new URL(url, window.location.href);
+      u.searchParams.set('_ts', String(Date.now()));
+      return u.toString();
+    };
+    const parseCsv = (textContent) => {
+      const rows = [];
+      let i = 0, field = '', row = [], inQ = false;
+      while (i < textContent.length) {
+        const c = textContent[i];
+        if (inQ) {
+          if (c === '"' && textContent[i+1] === '"') { field += '"'; i += 2; continue; }
+          if (c === '"') { inQ = false; i++; continue; }
+          field += c; i++; continue;
+        }
+        if (c === '"') { inQ = true; i++; continue; }
+        if (c === ',') { row.push(field); field = ''; i++; continue; }
+        if (c === '\n') { row.push(field); rows.push(row); field = ''; row = []; i++; continue; }
+        if (c === '\r') { i++; continue; }
+        field += c; i++;
+      }
+      if (field.length || row.length) { row.push(field); rows.push(row); }
+      return rows;
+    };
+    const monthKeyFromDate = (raw) => {
+      const d = new Date(raw);
+      if (Number.isNaN(d.getTime())) return '';
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      return `${y}-${m}`;
+    };
+    const dayKeyFromDate = (raw) => {
+      const d = new Date(raw);
+      if (Number.isNaN(d.getTime())) return '';
+      return d.toISOString().slice(0, 10);
+    };
+    const currentMonthKey = (() => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    })();
+
+    const selMetier = el('selMetier');
+    const selMonth = el('selMonth');
+    const selChantier = el('selChantier');
+    const selWeek = el('selWeek');
+    const selDay = el('selDay');
+    const selCE = el('selCE');
+    const selPM = el('selPM');
+    const statusEl = el('status');
+    const sourceModeEl = el('sourceMode');
+    const tbody = document.querySelector('#tbl tbody');
+    const summaryBody = el('summaryBody');
+
+    let rows = [];
+    let loadedMode = '';
+
+    function setOptions(select, values, placeholder = '(Tous)') {
+      const prev = select.value;
+      select.innerHTML = '';
+      const first = document.createElement('option');
+      first.value = '';
+      first.textContent = placeholder;
+      select.appendChild(first);
+      values.forEach(v => {
+        const o = document.createElement('option');
+        o.value = v;
+        o.textContent = v;
+        select.appendChild(o);
+      });
+      if ([...select.options].some(o => o.value === prev)) select.value = prev;
+      else select.value = '';
+    }
+
+    function getFilters() {
+      return {
+        metier: selMetier.value,
+        month: selMonth.value,
+        chantier: selChantier.value,
+        week: selWeek.value,
+        day: selDay.value,
+        ce: selCE.value,
+        pm: selPM.value
+      };
+    }
+
+    function filterRows(data, f) {
+      return data.filter(r =>
+        (!f.metier || r.metier === f.metier) &&
+        (!f.month || r.month === f.month) &&
+        (!f.chantier || r.chantier === f.chantier) &&
+        (!f.week || String(r.week) === String(f.week)) &&
+        (!f.day || r.day === f.day) &&
+        (!f.ce || r.ce === f.ce) &&
+        (!f.pm || r.pm === f.pm)
+      );
+    }
+
+    function rebuildDropdowns() {
+      const f = getFilters();
+      setOptions(selMetier, [...new Set(rows.map(r => r.metier).filter(Boolean))].sort(), '(Tous)');
+
+      const months = [...new Set(rows
+        .filter(r => !f.metier || r.metier === f.metier)
+        .map(r => r.month)
+        .filter(Boolean)
+      )].sort();
+      setOptions(selMonth, months, '(Mois en cours)');
+      if (!selMonth.value && months.includes(currentMonthKey)) selMonth.value = currentMonthKey;
+
+      const f2 = getFilters();
+      const chantiers = [...new Set(rows
+        .filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month))
+        .map(r => r.chantier)
+        .filter(Boolean)
+      )].sort((a,b)=>a.localeCompare(b,'fr'));
+      setOptions(selChantier, chantiers, '(Tous)');
+
+      const weeks = [...new Set(rows
+        .filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month) && (!f2.chantier || r.chantier === f2.chantier))
+        .map(r => String(r.week))
+        .filter(Boolean)
+      )].sort((a,b)=>+a-+b);
+      setOptions(selWeek, weeks, '(Toutes)');
+
+      const days = [...new Set(rows
+        .filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month) && (!f2.chantier || r.chantier === f2.chantier) && (!f2.week || String(r.week) === String(f2.week)))
+        .map(r => r.day)
+        .filter(Boolean)
+      )].sort();
+      setOptions(selDay, days, '(Tous)');
+
+      const ces = [...new Set(rows
+        .filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month) && (!f2.chantier || r.chantier === f2.chantier) && (!f2.week || String(r.week) === String(f2.week)) && (!f2.day || r.day === f2.day))
+        .map(r => r.ce)
+        .filter(Boolean)
+      )].sort((a,b)=>a.localeCompare(b,'fr'));
+      setOptions(selCE, ces, '(Tous)');
+
+      const pms = [...new Set(rows
+        .filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month) && (!f2.chantier || r.chantier === f2.chantier) && (!f2.week || String(r.week) === String(f2.week)) && (!f2.day || r.day === f2.day) && (!f2.ce || r.ce === f2.ce))
+        .map(r => r.pm)
+        .filter(Boolean)
+      )].sort((a,b)=>a.localeCompare(b,'fr'));
+      setOptions(selPM, pms, '(Tous)');
+    }
+
+    function renderSummary(baseRows) {
+      summaryBody.innerHTML = '';
+      const grouped = new Map();
+      baseRows.forEach(r => {
+        const key = r.metier || '(Sans métier)';
+        if (!grouped.has(key)) grouped.set(key, { ok:0, nok:0, total:0 });
+        const g = grouped.get(key);
+        g.total += 1;
+        if (r.status === 'OK') g.ok += 1; else g.nok += 1;
+      });
+      [...grouped.entries()].sort((a,b)=>a[0].localeCompare(b[0],'fr')).forEach(([metier, g]) => {
+        const tr = document.createElement('tr');
+        const pct = g.total ? Math.round((g.ok / g.total) * 100) + '%' : '-';
+        tr.innerHTML = `<td>${metier}</td><td>${g.ok}</td><td>${g.nok}</td><td>${g.total}</td><td>${pct}</td>`;
+        summaryBody.appendChild(tr);
+      });
+      el('globalSummaryCard').style.display = getFilters().metier ? 'none' : '';
+    }
+
+    function renderTable(out) {
+      tbody.innerHTML = '';
+      out.sort((a,b) =>
+        (a.metier || '').localeCompare(b.metier || '', 'fr') ||
+        (String(a.month || '')).localeCompare(String(b.month || '')) ||
+        ((+a.week || 0) - (+b.week || 0)) ||
+        (a.day || '').localeCompare(b.day || '') ||
+        (a.chantier || '').localeCompare(b.chantier || '', 'fr') ||
+        (a.ce || '').localeCompare(b.ce || '', 'fr') ||
+        (a.ouvrier || '').localeCompare(b.ouvrier || '', 'fr')
+      ).forEach(r => {
+        const tr = document.createElement('tr');
+        const pill = r.status === 'OK'
+          ? '<span class="pill ok">OK</span>'
+          : '<span class="pill nok">NOK</span>';
+        const canFlag = r.status !== 'OK';
+        const btn = canFlag ? `<button class="btn" data-flag="1" data-row='${encodeURIComponent(JSON.stringify(r))}'>Absent+15js</button>` : '';
+        tr.innerHTML = `
+          <td>${r.metier || ''}</td>
+          <td>${r.month || ''}</td>
+          <td>${r.week || ''}</td>
+          <td>${r.day || ''}</td>
+          <td>${r.chantier || ''}</td>
+          <td>${r.pm || ''}</td>
+          <td>${r.ce || ''}</td>
+          <td>${r.equipe || ''}</td>
+          <td>${r.ouvrier || ''}</td>
+          <td>${pill}</td>
+          <td>${r.last || ''}</td>
+          <td class="actionsCell">${btn}</td>
+        `;
+        tbody.appendChild(tr);
       });
     }
+
+    function refreshView() {
+      const baseRows = filterRows(rows, { ...getFilters(), chantier:'', week:'', day:'', ce:'', pm:'' });
+      const out = filterRows(rows, getFilters());
+      const total = out.length;
+      const ok = out.filter(r => r.status === 'OK').length;
+      const nok = total - ok;
+      el('kpiTotal').textContent = total;
+      el('kpiOk').textContent = ok;
+      el('kpiNok').textContent = nok;
+      el('kpiPct').textContent = total ? Math.round((ok / total) * 100) + '%' : '-';
+      renderSummary(baseRows);
+      renderTable(out);
+      statusEl.textContent = `Lignes affichées : ${total}`;
+    }
+
+    function buildRowsFromLegacyCsv(csvRows) {
+      const head = (csvRows[0] || []).map(h => text(h));
+      const idx = {
+        gen: head.indexOf('GeneratedAt'),
+        week: head.indexOf('Week'),
+        metier: head.indexOf('Metier'),
+        pm: head.indexOf('PM'),
+        chantier: head.indexOf('Chantier'),
+        ce: head.indexOf('ChefEquipe'),
+        ouvrier: head.indexOf('Ouvrier'),
+        present: head.indexOf('PresentTBM'),
+        last: head.indexOf('LastTBMDate')
+      };
+      return csvRows.slice(1)
+        .filter(r => r.length && r[idx.week])
+        .map(r => {
+          const last = text(r[idx.last]);
+          const month = monthKeyFromDate(last) || currentMonthKey;
+          const day = dayKeyFromDate(last);
+          const status = norm(r[idx.present]) === 'OUI' ? 'OK' : 'NOK';
+          return {
+            source: 'legacy_csv',
+            generatedAt: text(r[idx.gen]),
+            month,
+            day,
+            week: parseInt(r[idx.week], 10) || text(r[idx.week]),
+            metier: norm(r[idx.metier]),
+            pm: text(r[idx.pm]),
+            chantier: text(r[idx.chantier]),
+            ce: text(r[idx.ce]),
+            equipe: text(r[idx.ce]),
+            ouvrier: text(r[idx.ouvrier]),
+            status,
+            last
+          };
+        });
+    }
+
+    function buildRowsFromConsolidatedJson(items) {
+      return (items || []).map(item => ({
+        source: 'consolidated_json',
+        generatedAt: text(item.generatedAt),
+        month: text(item.month) || monthKeyFromDate(item.lastTbmDate) || currentMonthKey,
+        day: text(item.day) || dayKeyFromDate(item.lastTbmDate),
+        week: item.isoWeek ?? item.week ?? '',
+        metier: norm(item.metier),
+        pm: text(item.pm),
+        chantier: text(item.chantier),
+        ce: text(item.chefEquipe || item.ce),
+        equipe: text(item.equipe),
+        ouvrier: text(item.ouvrier),
+        status: norm(item.status || item.statut) === 'OK' ? 'OK' : 'NOK',
+        last: text(item.lastTbmDate || item.last)
+      })).filter(r => r.ouvrier || r.chantier || r.ce || r.pm);
+    }
+
+    async function loadConsolidatedIfAvailable() {
+      const url = window.TBPM_DATA_URL;
+      if (!url) return false;
+      const res = await fetch(withCacheBust(url), { cache:'no-store', headers:{ 'Cache-Control':'no-cache' } });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const json = await res.json();
+      const items = Array.isArray(json) ? json : (json.items || json.rows || []);
+      rows = buildRowsFromConsolidatedJson(items);
+      loadedMode = 'Source consolidée';
+      return true;
+    }
+
+    async function loadLegacyCsvFallback() {
+      const url = window.SUIVI_PMS_CSV_URL;
+      if (!url) throw new Error('SUIVI_PMS_CSV_URL manquant dans sheetConfig.js');
+      const res = await fetch(withCacheBust(url), { cache:'no-store', headers:{ 'Cache-Control':'no-cache' } });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const csvText = await res.text();
+      rows = buildRowsFromLegacyCsv(parseCsv(csvText));
+      loadedMode = 'Fallback CSV actuel';
+    }
+
+    async function load() {
+      sourceModeEl.textContent = 'Source : chargement…';
+      statusEl.textContent = 'Chargement…';
+      try {
+        let usedConsolidated = false;
+        try {
+          usedConsolidated = await loadConsolidatedIfAvailable();
+        } catch (err) {
+          console.warn('TBPM_DATA_URL indisponible, fallback CSV.', err);
+        }
+        if (!usedConsolidated) await loadLegacyCsvFallback();
+        rebuildDropdowns();
+        refreshView();
+        sourceModeEl.textContent = `Source : ${loadedMode}`;
+      } catch (err) {
+        statusEl.textContent = 'Erreur chargement : ' + err;
+        sourceModeEl.textContent = 'Source : erreur';
+        console.error(err);
+      }
+    }
+
+    async function sendAbsent15(row) {
+      const url = window.ATTESTATION_COLLECT_URL;
+      if (!url) {
+        alert('ATTESTATION_COLLECT_URL non configurée.');
+        return;
+      }
+      const payload = {
+        data: {
+          metier: row.metier,
+          month: row.month,
+          week: row.week,
+          day: row.day,
+          pm: row.pm,
+          chantier: row.chantier,
+          ce: row.ce,
+          equipe: row.equipe,
+          ouvrier: row.ouvrier,
+          user: row.pm || row.ce || '',
+          flag: 'Absent+15js'
+        }
+      };
+      await fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      alert('Signalement envoyé (Absent+15js).');
+    }
+
+    [selMetier, selMonth, selChantier, selWeek, selDay, selCE, selPM].forEach(s => {
+      s.addEventListener('change', () => { rebuildDropdowns(); refreshView(); });
+    });
+
+    el('btnReset').addEventListener('click', () => {
+      selMetier.value = '';
+      selMonth.value = currentMonthKey;
+      selChantier.value = '';
+      selWeek.value = '';
+      selDay.value = '';
+      selCE.value = '';
+      selPM.value = '';
+      rebuildDropdowns();
+      refreshView();
+    });
+
+    tbody.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('button[data-flag="1"]');
+      if (!btn) return;
+      const row = JSON.parse(decodeURIComponent(btn.dataset.row));
+      try {
+        await sendAbsent15(row);
+      } catch (err) {
+        alert('Erreur envoi : ' + err);
+        console.error(err);
+      }
+    });
+
+    load();
   </script>
 </body>
 </html>
