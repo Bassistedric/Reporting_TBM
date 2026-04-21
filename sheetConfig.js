@@ -18,9 +18,8 @@ const TBM_RAW_GID = "1773113526";
 const TBM_RAW_CSV_URL =
   `https://docs.google.com/spreadsheets/d/${TBM_RAW_SHEET_ID}/export?format=csv&gid=${TBM_RAW_GID}`;
 
-// Future source consolidée correcte pour tbPM
-// Laisser vide tant que l'Apps Script / endpoint JSON n'est pas prêt.
-const TBPM_DATA_URL = "https://script.google.com/macros/s/AKfycbwtpZRd-Pohj6j7osFTKS2ReWIZz-cwFCn1yWkSiIJtoSFQlL1p8gimfthtF_tIadZJDg/exec";
+// Source dédiée tbPM
+const TBPM_DATA_URL = "https://script.google.com/macros/s/AKfycbzbhyB7VcUyDXdje78YPMJpqg0_usYkD6sHJbjB-zFHl17L95wvoJzn8C1_MI2kRx1WlQ/exec";
 
 // URL Apps Script dédiée à l'application Attestation
 const ATTESTATION_COLLECT_URL =
