@@ -53,7 +53,7 @@
       <div class="kpi"><b>OK</b><span id="kpiOk">-</span></div>
       <div class="kpi"><b>NOK</b><span id="kpiNok">-</span></div>
       <div class="kpi"><b>% OK</b><span id="kpiPct">-</span></div>
-      <div class="kpi"><b>OK hors jour courant</b><span id="kpiAlt">-</span></div>
+      <div class="kpi"><b>OK sans date</b><span id="kpiAlt">-</span></div>
     </div></div>
 
     <div class="card" id="globalSummaryCard"><div class="sectionTitle">Résumé par métier</div><div class="muted">S’affiche quand aucun métier n’est sélectionné.</div>
@@ -76,6 +76,25 @@
     const selMetier = $('selMetier'), selMonth = $('selMonth'), selChantier = $('selChantier'), selCE = $('selCE'), selPM = $('selPM'), selStatus = $('selStatus');
     const statusEl = $('status'), sourceModeEl = $('sourceMode'), tbody = document.querySelector('#tbl tbody'), summaryBody = $('summaryBody');
     let rows = [], loadedMode = '';
+
+    function parseCsv(textContent) {
+      const rows = []; let i = 0, field = '', row = [], inQ = false;
+      while (i < textContent.length) {
+        const c = textContent[i];
+        if (inQ) {
+          if (c === '"' && textContent[i + 1] === '"') { field += '"'; i += 2; continue; }
+          if (c === '"') { inQ = false; i++; continue; }
+          field += c; i++; continue;
+        }
+        if (c === '"') { inQ = true; i++; continue; }
+        if (c === ',') { row.push(field); field = ''; i++; continue; }
+        if (c === '\n') { row.push(field); rows.push(row); field = ''; row = []; i++; continue; }
+        if (c === '\r') { i++; continue; }
+        field += c; i++;
+      }
+      if (field.length || row.length) { row.push(field); rows.push(row); }
+      return rows;
+    }
 
     function setOptions(select, values, placeholder='(Tous)') {
       const prev = select.value;
@@ -174,19 +193,33 @@
 
     async function loadFallbackCsv() {
       if (!window.SUIVI_PMS_CSV_URL) throw new Error('SUIVI_PMS_CSV_URL manquant');
-      const res = await fetch(window.SUIVI_PMS_CSV_URL, { cache:'no-store' });
+      const res = await fetch(window.SUIVI_PMS_CSV_URL, { cache:'no-store', headers:{ 'Cache-Control':'no-cache' } });
       if (!res.ok) throw new Error('HTTP '+res.status);
       const csv = parseCsv(await res.text());
       const head = (csv[0] || []).map(txt);
-      const idx = { month:-1, metier:head.indexOf('Metier'), pm:head.indexOf('PM'), chantier:head.indexOf('Chantier'), ce:head.indexOf('ChefEquipe'), ouvrier:head.indexOf('Ouvrier'), present:head.indexOf('PresentTBM') };
-      rows = csv.slice(1).filter(r=>r.length && r[idx.ouvrier]>=0).map(r=>({ month: currentMonthKey, metier:norm(r[idx.metier])==='ELEC'?'ELEC':'HVAC_REF', chantier:txt(r[idx.chantier]), pm:txt(r[idx.pm]), ce:txt(r[idx.ce]), ouvrier:txt(r[idx.ouvrier]), day:'', status:norm(r[idx.present])==='OUI'?'OK':'NOK' }));
+      const idx = { metier:head.indexOf('Metier'), pm:head.indexOf('PM'), chantier:head.indexOf('Chantier'), ce:head.indexOf('ChefEquipe'), ouvrier:head.indexOf('Ouvrier'), present:head.indexOf('PresentTBM') };
+      rows = csv.slice(1).filter(r => r.length && idx.ouvrier >= 0 && txt(r[idx.ouvrier])).map(r=>({ month: currentMonthKey, metier:norm(r[idx.metier])==='ELEC'?'ELEC':'HVAC_REF', chantier:txt(r[idx.chantier]), pm:txt(r[idx.pm]), ce:txt(r[idx.ce]), ouvrier:txt(r[idx.ouvrier]), day:'', status:norm(r[idx.present])==='OUI'?'OK':'NOK' }));
       loadedMode = 'Fallback CSV actuel';
     }
 
     async function load() {
-      sourceModeEl.textContent = 'Source : chargement…'; statusEl.textContent = 'Chargement…';
-      try { await loadConsolidated(); } catch (err) { console.warn(err); await loadFallbackCsv(); }
-      rebuildDropdowns(); refreshView(); sourceModeEl.textContent = `Source : ${loadedMode}`;
+      sourceModeEl.textContent = 'Source : chargement…';
+      statusEl.textContent = 'Chargement…';
+      try {
+        try {
+          await loadConsolidated();
+        } catch (err) {
+          console.warn('Source dédiée indisponible, fallback CSV.', err);
+          await loadFallbackCsv();
+        }
+        rebuildDropdowns();
+        refreshView();
+        sourceModeEl.textContent = `Source : ${loadedMode}`;
+      } catch (err) {
+        console.error(err);
+        sourceModeEl.textContent = 'Source : erreur';
+        statusEl.textContent = 'Erreur de chargement : ' + (err && err.message ? err.message : err);
+      }
     }
 
     async function sendAbsent15(row) {
@@ -196,8 +229,27 @@
       alert('Signalement envoyé (Absent+15js).');
     }
 
-    [selMetier, selMonth, selChantier, selCE, selPM, selStatus].forEach(s=>s.addEventListener('change', async ()=>{ if (s===selMonth && loadedMode==='Source dédiée tbPM') await loadConsolidated(); rebuildDropdowns(); refreshView(); }));
-    $('btnReset').addEventListener('click', async ()=>{ selMetier.value=''; selMonth.value=currentMonthKey; selChantier.value=''; selCE.value=''; selPM.value=''; selStatus.value=''; if (loadedMode==='Source dédiée tbPM') await loadConsolidated(); rebuildDropdowns(); refreshView(); });
+    [selMetier, selMonth, selChantier, selCE, selPM, selStatus].forEach(s=>s.addEventListener('change', async ()=>{
+      try {
+        if (s===selMonth && loadedMode==='Source dédiée tbPM') await loadConsolidated();
+        rebuildDropdowns(); refreshView();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Erreur filtre : ' + (err && err.message ? err.message : err);
+      }
+    }));
+
+    $('btnReset').addEventListener('click', async ()=>{
+      try {
+        selMetier.value=''; selMonth.value=currentMonthKey; selChantier.value=''; selCE.value=''; selPM.value=''; selStatus.value='';
+        if (loadedMode==='Source dédiée tbPM') await loadConsolidated();
+        rebuildDropdowns(); refreshView();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Erreur réinitialisation : ' + (err && err.message ? err.message : err);
+      }
+    });
+
     tbody.addEventListener('click', async (ev)=>{ const btn = ev.target.closest('button[data-flag="1"]'); if (!btn) return; const row = JSON.parse(decodeURIComponent(btn.dataset.row)); try { await sendAbsent15(row); } catch (err) { alert('Erreur envoi : '+err); console.error(err); } });
     load();
   </script>
