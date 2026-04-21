@@ -43,7 +43,6 @@
     select{width:100%}
     .btn{cursor:pointer}
     .btn:active{transform:translateY(1px)}
-    .btnPrimary{background:var(--vma-blue);color:#fff;border-color:var(--vma-blue)}
     .muted{color:var(--muted);font-size:12px}
     .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
     .kpi{padding:12px;border:1px solid var(--border);border-radius:14px;background:#fff}
@@ -136,10 +135,8 @@
               <th>Chantier</th>
               <th>PM</th>
               <th>ChefEquipe</th>
-              <th>Equipe</th>
               <th>Ouvrier</th>
               <th>Statut</th>
-              <th>Dernier TBM</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -344,10 +341,8 @@
           <td>${r.chantier || ''}</td>
           <td>${r.pm || ''}</td>
           <td>${r.ce || ''}</td>
-          <td>${r.equipe || ''}</td>
           <td>${r.ouvrier || ''}</td>
           <td>${pill}</td>
-          <td>${r.last || ''}</td>
           <td class="actionsCell">${btn}</td>
         `;
         tbody.appendChild(tr);
