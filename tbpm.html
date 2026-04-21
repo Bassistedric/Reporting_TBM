@@ -5,730 +5,200 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#104861" />
   <title>VMA Tools — tbPM</title>
-
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-
   <style>
-    :root{
-      --vma-blue:#104861;
-      --bg:#f5f6f8;
-      --card:#ffffff;
-      --border:#e6e6e6;
-      --text:#111827;
-      --muted:#6b7280;
-      --shadow:0 10px 26px rgba(0,0,0,.08);
-      --radius:18px;
-      --ok-bg:#e8f5e9;
-      --ok:#1b5e20;
-      --nok-bg:#ffebee;
-      --nok:#b71c1c;
-      --warn-bg:#fff8e1;
-      --warn:#8a5200;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
-    .wrap{max-width:1180px;margin:0 auto;padding:14px;}
-    .topbar{position:sticky;top:0;z-index:10;background:rgba(245,246,248,.92);backdrop-filter:blur(8px);padding:10px 0;}
-    .rowTop{display:flex;align-items:center;gap:10px;justify-content:space-between;}
-    .back{border:1px solid var(--border);background:#fff;border-radius:14px;padding:10px 12px;cursor:pointer}
+    :root{--vma-blue:#104861;--bg:#f5f6f8;--card:#fff;--border:#e6e6e6;--text:#111827;--muted:#6b7280;--shadow:0 10px 26px rgba(0,0,0,.08);--radius:18px;--ok-bg:#e8f5e9;--ok:#1b5e20;--nok-bg:#ffebee;--nok:#b71c1c;--warn-bg:#fff8e1;--warn:#8a5200}
+    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1180px;margin:0 auto;padding:14px}.topbar{position:sticky;top:0;z-index:10;background:rgba(245,246,248,.92);backdrop-filter:blur(8px);padding:10px 0}
+    .rowTop{display:flex;align-items:center;gap:10px;justify-content:space-between}.back{border:1px solid var(--border);background:#fff;border-radius:14px;padding:10px 12px;cursor:pointer}
     .title{flex:1;background:var(--vma-blue);color:#D9D9D9;border-radius:16px;padding:12px 14px;text-align:center;font-weight:900;letter-spacing:.3px;box-shadow:var(--shadow)}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-top:12px;}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
-    .field{min-width:160px;flex:1}
-    label{display:block;font-size:12px;color:#374151;margin-bottom:4px}
-    select,button{padding:10px;border:1px solid #d1d5db;border-radius:12px;background:#fff}
-    select{width:100%}
-    .btn{cursor:pointer}
-    .btn:active{transform:translateY(1px)}
-    .muted{color:var(--muted);font-size:12px}
-    .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-    .kpi{padding:12px;border:1px solid var(--border);border-radius:14px;background:#fff}
-    .kpi b{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-    .kpi span{font-size:24px;font-weight:900}
-    .tableWrap{overflow:auto;max-height:70vh;border-radius:14px}
-    table{width:100%;border-collapse:collapse;font-size:14px;background:#fff}
-    th,td{border-bottom:1px solid #eee;padding:10px;text-align:left;vertical-align:top}
-    th{position:sticky;top:0;background:#fff;z-index:1}
-    .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:800;font-size:12px;white-space:nowrap}
-    .ok{background:var(--ok-bg);color:var(--ok)}
-    .nok{background:var(--nok-bg);color:var(--nok)}
-    .warn{background:var(--warn-bg);color:var(--warn)}
-    .sectionTitle{font-weight:900;margin:0 0 8px}
-    .sourceBox{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .summaryTable td,.summaryTable th{padding:9px 10px}
-    .actionsCell{white-space:nowrap}
-    @media (max-width:760px){ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
-    @media (max-width:480px){ .kpis{grid-template-columns:1fr} }
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-top:12px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.field{min-width:160px;flex:1}label{display:block;font-size:12px;color:#374151;margin-bottom:4px}
+    select,button{padding:10px;border:1px solid #d1d5db;border-radius:12px;background:#fff}select{width:100%}.btn{cursor:pointer}.btn:active{transform:translateY(1px)}
+    .muted{color:var(--muted);font-size:12px}.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.kpi{padding:12px;border:1px solid var(--border);border-radius:14px;background:#fff}
+    .kpi b{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}.kpi span{font-size:24px;font-weight:900}.tableWrap{overflow:auto;max-height:70vh;border-radius:14px}
+    table{width:100%;border-collapse:collapse;font-size:14px;background:#fff}th,td{border-bottom:1px solid #eee;padding:10px;text-align:left;vertical-align:top}th{position:sticky;top:0;background:#fff;z-index:1}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:800;font-size:12px;white-space:nowrap}.ok{background:var(--ok-bg);color:var(--ok)}.nok{background:var(--nok-bg);color:var(--nok)}.warn{background:var(--warn-bg);color:var(--warn)}
+    .sectionTitle{font-weight:900;margin:0 0 8px}.sourceBox{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.summaryTable td,.summaryTable th{padding:9px 10px}.actionsCell{white-space:nowrap}
+    @media (max-width:760px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}} @media (max-width:480px){.kpis{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="topbar">
-      <div class="rowTop">
-        <button class="back" onclick="location.href='./index.html'">← Retour</button>
-        <div class="title">tbPM</div>
-        <div style="width:74px"></div>
-      </div>
-    </div>
+    <div class="topbar"><div class="rowTop"><button class="back" onclick="location.href='./index.html'">← Retour</button><div class="title">tbPM</div><div style="width:74px"></div></div></div>
 
     <div class="card">
       <div class="sectionTitle">Vue de suivi TBM</div>
-      <div class="muted">Lecture prioritaire des sources brutes Equipes-TBM et tbm. Le vieux CSV n’est utilisé qu’en dernier recours.</div>
-      <div class="sourceBox" style="margin-top:8px">
-        <span class="pill warn" id="sourceMode">Source : chargement…</span>
-        <span class="muted" id="status">Chargement…</span>
-      </div>
+      <div class="muted">Logique mensuelle : un ouvrier est OK s’il a reçu un TBM dans le mois. Le chantier, le PM et le chef d’équipe servent au suivi opérationnel.</div>
+      <div class="sourceBox" style="margin-top:8px"><span class="pill warn" id="sourceMode">Source : chargement…</span><span class="muted" id="status">Chargement…</span></div>
     </div>
 
     <div class="card">
       <div class="row">
         <div class="field"><label>Métier</label><select id="selMetier"></select></div>
         <div class="field"><label>Mois</label><select id="selMonth"></select></div>
-        <div class="field"><label>Chantier</label><select id="selChantier"></select></div>
-        <div class="field"><label>Semaine ISO</label><select id="selWeek"></select></div>
-        <div class="field"><label>Jour</label><select id="selDay"></select></div>
-        <div class="field"><label>Chef d’équipe</label><select id="selCE"></select></div>
-        <div class="field"><label>PM</label><select id="selPM"></select></div>
+        <div class="field"><label>Chantier actuel</label><select id="selChantier"></select></div>
+        <div class="field"><label>Chef d’équipe actuel</label><select id="selCE"></select></div>
+        <div class="field"><label>PM actuel</label><select id="selPM"></select></div>
+        <div class="field"><label>Statut</label><select id="selStatus"></select></div>
         <div><button class="btn" id="btnReset">Réinitialiser</button></div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="kpis">
-        <div class="kpi"><b>Total</b><span id="kpiTotal">-</span></div>
-        <div class="kpi"><b>OK</b><span id="kpiOk">-</span></div>
-        <div class="kpi"><b>NOK</b><span id="kpiNok">-</span></div>
-        <div class="kpi"><b>% OK</b><span id="kpiPct">-</span></div>
-      </div>
+    <div class="card"><div class="kpis">
+      <div class="kpi"><b>Total</b><span id="kpiTotal">-</span></div>
+      <div class="kpi"><b>OK</b><span id="kpiOk">-</span></div>
+      <div class="kpi"><b>NOK</b><span id="kpiNok">-</span></div>
+      <div class="kpi"><b>% OK</b><span id="kpiPct">-</span></div>
+      <div class="kpi"><b>OK hors jour courant</b><span id="kpiAlt">-</span></div>
+    </div></div>
+
+    <div class="card" id="globalSummaryCard"><div class="sectionTitle">Résumé par métier</div><div class="muted">S’affiche quand aucun métier n’est sélectionné.</div>
+      <div class="tableWrap" style="max-height:none;margin-top:10px"><table class="summaryTable"><thead><tr><th>Métier</th><th>OK</th><th>NOK</th><th>Total</th><th>% OK</th></tr></thead><tbody id="summaryBody"></tbody></table></div>
     </div>
 
-    <div class="card" id="globalSummaryCard">
-      <div class="sectionTitle">Résumé par métier</div>
-      <div class="muted">S’affiche quand aucun métier n’est sélectionné.</div>
-      <div class="tableWrap" style="max-height:none;margin-top:10px">
-        <table class="summaryTable">
-          <thead>
-            <tr><th>Métier</th><th>OK</th><th>NOK</th><th>Total</th><th>% OK</th></tr>
-          </thead>
-          <tbody id="summaryBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="sectionTitle">Détail nominatif</div>
-      <div class="tableWrap">
-        <table id="tbl">
-          <thead>
-            <tr>
-              <th>Métier</th>
-              <th>Mois</th>
-              <th>Semaine</th>
-              <th>Jour</th>
-              <th>Chantier</th>
-              <th>PM</th>
-              <th>Chef d’équipe</th>
-              <th>Ouvrier</th>
-              <th>Statut</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+    <div class="card"><div class="sectionTitle">Détail nominatif</div>
+      <div class="tableWrap"><table id="tbl"><thead><tr>
+        <th>Métier</th><th>Mois</th><th>Dernier jour TBM</th><th>Chantier actuel</th><th>PM actuel</th><th>Chef d’équipe actuel</th><th>Ouvrier</th><th>Statut</th><th>Action</th>
+      </tr></thead><tbody></tbody></table></div>
     </div>
   </div>
 
   <script src="./sheetConfig.js"></script>
   <script>
-    const el = (id) => document.getElementById(id);
-    const normSpace = (s) => String(s ?? '').trim().replace(/\s+/g, ' ');
-    const normUpper = (s) => normSpace(s).toUpperCase();
-    const normKey = (s) => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase().replace(/\s+/g, ' ');
-    const text = (s) => String(s ?? '').trim();
-    const withCacheBust = (url) => {
-      const u = new URL(url, window.location.href);
-      u.searchParams.set('_ts', String(Date.now()));
-      return u.toString();
-    };
-    const parseCsv = (textContent) => {
-      const rows = [];
-      let i = 0, field = '', row = [], inQ = false;
-      while (i < textContent.length) {
-        const c = textContent[i];
-        if (inQ) {
-          if (c === '"' && textContent[i + 1] === '"') { field += '"'; i += 2; continue; }
-          if (c === '"') { inQ = false; i++; continue; }
-          field += c; i++; continue;
-        }
-        if (c === '"') { inQ = true; i++; continue; }
-        if (c === ',') { row.push(field); field = ''; i++; continue; }
-        if (c === '\n') { row.push(field); rows.push(row); field = ''; row = []; i++; continue; }
-        if (c === '\r') { i++; continue; }
-        field += c; i++;
-      }
-      if (field.length || row.length) { row.push(field); rows.push(row); }
-      return rows;
-    };
-    const cleanHeader = (s) => normKey(String(s ?? '').replace(/^\uFEFF/, '').replace(/\t/g, ' '));
-    const headerIndex = (headers, aliases) => {
-      for (const alias of aliases) {
-        const idx = headers.indexOf(cleanHeader(alias));
-        if (idx >= 0) return idx;
-      }
-      return -1;
-    };
-    const monthKeyFromDate = (raw) => {
-      const d = toDate(raw);
-      if (!d) return '';
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    };
-    const dayKeyFromDate = (raw) => {
-      const d = toDate(raw);
-      if (!d) return '';
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    };
-    const getIsoWeek = (dateObj) => {
-      const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
-      const dayNum = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    };
-    const getIsoYear = (dateObj) => {
-      const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
-      const dayNum = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-      return d.getUTCFullYear();
-    };
-    const isoWeekStart = (isoYear, isoWeek) => {
-      const simple = new Date(Date.UTC(isoYear, 0, 4 + (isoWeek - 1) * 7));
-      const dow = simple.getUTCDay() || 7;
-      simple.setUTCDate(simple.getUTCDate() - dow + 1);
-      return new Date(simple);
-    };
-    const isoWeekIntersectsMonth = (isoYear, isoWeek, monthKey) => {
-      const start = isoWeekStart(isoYear, isoWeek);
-      for (let i = 0; i < 7; i += 1) {
-        const d = new Date(start);
-        d.setUTCDate(start.getUTCDate() + i);
-        const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-        if (key === monthKey) return true;
-      }
-      return false;
-    };
-    const today = new Date();
-    const currentMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-    const currentIsoWeek = String(getIsoWeek(today));
-    const currentIsoYear = getIsoYear(today);
+    const $ = (id) => document.getElementById(id);
+    const norm = (s) => String(s ?? '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ');
+    const txt = (s) => String(s ?? '').trim();
+    const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+    const selMetier = $('selMetier'), selMonth = $('selMonth'), selChantier = $('selChantier'), selCE = $('selCE'), selPM = $('selPM'), selStatus = $('selStatus');
+    const statusEl = $('status'), sourceModeEl = $('sourceMode'), tbody = document.querySelector('#tbl tbody'), summaryBody = $('summaryBody');
+    let rows = [], loadedMode = '';
 
-    const selMetier = el('selMetier');
-    const selMonth = el('selMonth');
-    const selChantier = el('selChantier');
-    const selWeek = el('selWeek');
-    const selDay = el('selDay');
-    const selCE = el('selCE');
-    const selPM = el('selPM');
-    const statusEl = el('status');
-    const sourceModeEl = el('sourceMode');
-    const tbody = document.querySelector('#tbl tbody');
-    const summaryBody = el('summaryBody');
-
-    let rows = [];
-    let loadedMode = '';
-
-    function toDate(raw) {
-      if (!raw) return null;
-      if (raw instanceof Date && !Number.isNaN(raw.getTime())) return raw;
-      const str = String(raw).trim();
-      if (!str) return null;
-      const direct = new Date(str);
-      if (!Number.isNaN(direct.getTime())) return direct;
-      const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
-      if (m) {
-        const [, dd, mm, yyyy, hh = '0', mi = '0', ss = '0'] = m;
-        const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(mi), Number(ss));
-        if (!Number.isNaN(d.getTime())) return d;
-      }
-      return null;
-    }
-
-    function normalizeMetier(raw) {
-      const n = normKey(raw);
-      if (n === 'ELEC' || n === 'ELECTRICITE') return 'ELEC';
-      if (n === 'HVAC_REF' || n === 'HVAC-REF' || n === 'HVACREF' || n === 'HVAC_REF_' || n === 'REF' || n === 'HVAC') return 'HVAC_REF';
-      return n;
-    }
-
-    function setOptions(select, values, placeholder = '(Tous)') {
+    function setOptions(select, values, placeholder='(Tous)') {
       const prev = select.value;
       select.innerHTML = '';
-      const first = document.createElement('option');
-      first.value = '';
-      first.textContent = placeholder;
-      select.appendChild(first);
-      values.forEach(v => {
-        const o = document.createElement('option');
-        o.value = v;
-        o.textContent = v;
-        select.appendChild(o);
-      });
-      if ([...select.options].some(o => o.value === prev)) select.value = prev;
-      else select.value = '';
+      const empty = document.createElement('option'); empty.value=''; empty.textContent=placeholder; select.appendChild(empty);
+      values.forEach(v => { const o = document.createElement('option'); o.value=v; o.textContent=v; select.appendChild(o); });
+      if ([...select.options].some(o=>o.value===prev)) select.value = prev; else select.value='';
     }
 
-    function getFilters() {
-      return {
-        metier: selMetier.value,
-        month: selMonth.value,
-        chantier: selChantier.value,
-        week: selWeek.value,
-        day: selDay.value,
-        ce: selCE.value,
-        pm: selPM.value
-      };
-    }
-
-    function rowMatchesMonth(row, monthKey) {
-      if (!monthKey) return true;
-      if (row.months && row.months.includes(monthKey)) return true;
-      if (row.month && row.month === monthKey) return true;
-      return false;
-    }
+    function getFilters() { return { metier:selMetier.value, month:selMonth.value, chantier:selChantier.value, ce:selCE.value, pm:selPM.value, status:selStatus.value }; }
 
     function filterRows(data, f) {
       return data.filter(r =>
         (!f.metier || r.metier === f.metier) &&
-        rowMatchesMonth(r, f.month) &&
+        (!f.month || r.month === f.month) &&
         (!f.chantier || r.chantier === f.chantier) &&
-        (!f.week || String(r.week) === String(f.week)) &&
-        (!f.day || r.day === f.day) &&
         (!f.ce || r.ce === f.ce) &&
-        (!f.pm || r.pm === f.pm)
+        (!f.pm || r.pm === f.pm) &&
+        (!f.status || r.status === f.status)
       );
     }
 
     function rebuildDropdowns() {
       const f = getFilters();
-      setOptions(selMetier, [...new Set(rows.map(r => r.metier).filter(Boolean))].sort(), '(Tous)');
-
-      const months = [...new Set(rows.flatMap(r => r.months || (r.month ? [r.month] : [])).filter(Boolean))].sort();
+      setOptions(selMetier, [...new Set(rows.map(r=>r.metier).filter(Boolean))].sort(), '(Tous)');
+      const months = [...new Set(rows.map(r=>r.month).filter(Boolean))].sort();
       setOptions(selMonth, months, '(Mois en cours)');
       if (!selMonth.value && months.includes(currentMonthKey)) selMonth.value = currentMonthKey;
-
       const f2 = getFilters();
-      const chantiers = [...new Set(rows
-        .filter(r => (!f2.metier || r.metier === f2.metier) && rowMatchesMonth(r, f2.month))
-        .map(r => r.chantier)
-        .filter(Boolean)
-      )].sort((a,b)=>a.localeCompare(b,'fr'));
-      setOptions(selChantier, chantiers, '(Tous)');
-
-      const weeks = [...new Set(rows
-        .filter(r => (!f2.metier || r.metier === f2.metier) && rowMatchesMonth(r, f2.month) && (!f2.chantier || r.chantier === f2.chantier))
-        .map(r => String(r.week))
-        .filter(Boolean)
-      )].sort((a,b)=>+a-+b);
-      setOptions(selWeek, weeks, '(Toutes)');
-      if (!selWeek.value && weeks.includes(currentIsoWeek)) selWeek.value = currentIsoWeek;
-
+      setOptions(selChantier, [...new Set(rows.filter(r=>(!f2.metier||r.metier===f2.metier)&&(!f2.month||r.month===f2.month)).map(r=>r.chantier).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr')),'(Tous)');
       const f3 = getFilters();
-      const days = [...new Set(rows
-        .filter(r => (!f3.metier || r.metier === f3.metier) && rowMatchesMonth(r, f3.month) && (!f3.chantier || r.chantier === f3.chantier) && (!f3.week || String(r.week) === String(f3.week)))
-        .map(r => r.day)
-        .filter(Boolean)
-      )].sort();
-      setOptions(selDay, days, '(Tous)');
-
-      const ces = [...new Set(rows
-        .filter(r => (!f3.metier || r.metier === f3.metier) && rowMatchesMonth(r, f3.month) && (!f3.chantier || r.chantier === f3.chantier) && (!f3.week || String(r.week) === String(f3.week)) && (!f3.day || r.day === f3.day))
-        .map(r => r.ce)
-        .filter(Boolean)
-      )].sort((a,b)=>a.localeCompare(b,'fr'));
-      setOptions(selCE, ces, '(Tous)');
-
-      const pms = [...new Set(rows
-        .filter(r => (!f3.metier || r.metier === f3.metier) && rowMatchesMonth(r, f3.month) && (!f3.chantier || r.chantier === f3.chantier) && (!f3.week || String(r.week) === String(f3.week)) && (!f3.day || r.day === f3.day) && (!f3.ce || r.ce === f3.ce))
-        .map(r => r.pm)
-        .filter(Boolean)
-      )].sort((a,b)=>a.localeCompare(b,'fr'));
-      setOptions(selPM, pms, '(Tous)');
+      setOptions(selCE, [...new Set(rows.filter(r=>(!f3.metier||r.metier===f3.metier)&&(!f3.month||r.month===f3.month)&&(!f3.chantier||r.chantier===f3.chantier)).map(r=>r.ce).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr')),'(Tous)');
+      setOptions(selPM, [...new Set(rows.filter(r=>(!f3.metier||r.metier===f3.metier)&&(!f3.month||r.month===f3.month)&&(!f3.chantier||r.chantier===f3.chantier)&&(!f3.ce||r.ce===f3.ce)).map(r=>r.pm).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr')),'(Tous)');
+      setOptions(selStatus, ['OK','NOK'], '(Tous)');
     }
 
     function renderSummary(baseRows) {
       summaryBody.innerHTML = '';
       const grouped = new Map();
-      baseRows.forEach(r => {
-        const key = r.metier || '(Sans métier)';
-        if (!grouped.has(key)) grouped.set(key, { ok: 0, nok: 0, total: 0 });
-        const g = grouped.get(key);
-        g.total += 1;
-        if (r.status === 'OK') g.ok += 1; else g.nok += 1;
-      });
-      [...grouped.entries()].sort((a,b)=>a[0].localeCompare(b[0],'fr')).forEach(([metier, g]) => {
-        const tr = document.createElement('tr');
-        const pct = g.total ? Math.round((g.ok / g.total) * 100) + '%' : '-';
-        tr.innerHTML = `<td>${metier}</td><td>${g.ok}</td><td>${g.nok}</td><td>${g.total}</td><td>${pct}</td>`;
-        summaryBody.appendChild(tr);
-      });
-      el('globalSummaryCard').style.display = getFilters().metier ? 'none' : '';
+      baseRows.forEach(r => { const k = r.metier || '(Sans métier)'; if (!grouped.has(k)) grouped.set(k,{ok:0,nok:0,total:0}); const g=grouped.get(k); g.total++; if (r.status==='OK') g.ok++; else g.nok++; });
+      [...grouped.entries()].sort((a,b)=>a[0].localeCompare(b[0],'fr')).forEach(([metier,g]) => { const tr=document.createElement('tr'); const pct=g.total?Math.round((g.ok/g.total)*100)+'%':'-'; tr.innerHTML=`<td>${metier}</td><td>${g.ok}</td><td>${g.nok}</td><td>${g.total}</td><td>${pct}</td>`; summaryBody.appendChild(tr); });
+      $('globalSummaryCard').style.display = getFilters().metier ? 'none' : '';
     }
 
     function renderTable(out) {
-      tbody.innerHTML = '';
-      out.sort((a,b) =>
-        (a.metier || '').localeCompare(b.metier || '', 'fr') ||
-        (String(a.month || '')).localeCompare(String(b.month || '')) ||
-        ((+a.week || 0) - (+b.week || 0)) ||
-        (a.day || '').localeCompare(b.day || '') ||
-        (a.chantier || '').localeCompare(b.chantier || '', 'fr') ||
-        (a.ce || '').localeCompare(b.ce || '', 'fr') ||
-        (a.ouvrier || '').localeCompare(b.ouvrier || '', 'fr')
-      ).forEach(r => {
-        const tr = document.createElement('tr');
-        const pill = r.status === 'OK' ? '<span class="pill ok">OK</span>' : '<span class="pill nok">NOK</span>';
-        const btn = r.status !== 'OK' ? `<button class="btn" data-flag="1" data-row='${encodeURIComponent(JSON.stringify(r))}'>Absent+15js</button>` : '';
-        tr.innerHTML = `
-          <td>${r.metier || ''}</td>
-          <td>${r.month || ''}</td>
-          <td>${r.week || ''}</td>
-          <td>${r.day || ''}</td>
-          <td>${r.chantier || ''}</td>
-          <td>${r.pm || ''}</td>
-          <td>${r.ce || ''}</td>
-          <td>${r.ouvrier || ''}</td>
-          <td>${pill}</td>
-          <td class="actionsCell">${btn}</td>
-        `;
+      tbody.innerHTML='';
+      out.sort((a,b)=>(a.metier||'').localeCompare(b.metier||'','fr')||(a.chantier||'').localeCompare(b.chantier||'','fr')||(a.ce||'').localeCompare(b.ce||'','fr')||(a.ouvrier||'').localeCompare(b.ouvrier||'','fr')).forEach(r=>{
+        const tr=document.createElement('tr');
+        const pill=r.status==='OK'?'<span class="pill ok">OK</span>':'<span class="pill nok">NOK</span>';
+        const btn=r.status==='NOK'?`<button class="btn" data-flag="1" data-row='${encodeURIComponent(JSON.stringify(r))}'>Absent+15js</button>`:'';
+        tr.innerHTML=`<td>${r.metier||''}</td><td>${r.month||''}</td><td>${r.day||''}</td><td>${r.chantier||''}</td><td>${r.pm||''}</td><td>${r.ce||''}</td><td>${r.ouvrier||''}</td><td>${pill}</td><td class="actionsCell">${btn}</td>`;
         tbody.appendChild(tr);
       });
     }
 
     function refreshView() {
-      const baseRows = filterRows(rows, { ...getFilters(), chantier: '', week: '', day: '', ce: '', pm: '' });
+      const baseRows = filterRows(rows, { ...getFilters(), chantier:'', ce:'', pm:'', status:'' });
       const out = filterRows(rows, getFilters());
-      const total = out.length;
-      const ok = out.filter(r => r.status === 'OK').length;
-      const nok = total - ok;
-      el('kpiTotal').textContent = total;
-      el('kpiOk').textContent = ok;
-      el('kpiNok').textContent = nok;
-      el('kpiPct').textContent = total ? Math.round((ok / total) * 100) + '%' : '-';
-      renderSummary(baseRows);
-      renderTable(out);
-      statusEl.textContent = `Lignes affichées : ${total}`;
+      const total = out.length, ok = out.filter(r=>r.status==='OK').length, nok = total-ok;
+      $('kpiTotal').textContent = total; $('kpiOk').textContent = ok; $('kpiNok').textContent = nok; $('kpiPct').textContent = total?Math.round((ok/total)*100)+'%':'-';
+      $('kpiAlt').textContent = out.filter(r=>r.status==='OK' && !r.day).length;
+      renderSummary(baseRows); renderTable(out); statusEl.textContent = `Lignes affichées : ${total}`;
     }
 
-    function parseEquipeNames(rawEquipe, payloadJson) {
-      const out = [];
-      const add = (v) => {
-        const s = normSpace(v);
-        if (!s) return;
-        if (!out.some(x => normKey(x) === normKey(s))) out.push(s);
+    async function fetchJson(url) {
+      const u = new URL(url, window.location.href); u.searchParams.set('_ts', String(Date.now()));
+      const month = selMonth.value || currentMonthKey; u.searchParams.set('month', month);
+      const res = await fetch(u.toString(), { cache:'no-store', headers:{ 'Cache-Control':'no-cache' } });
+      if (!res.ok) throw new Error('HTTP '+res.status);
+      return res.json();
+    }
+
+    function normalizeApiItem(item) {
+      const month = txt(item.month) || currentMonthKey;
+      return {
+        source: 'consolidated_json',
+        month,
+        metier: norm(item.metier)==='ELEC'?'ELEC':'HVAC_REF',
+        chantier: txt(item.currentChantier || item.chantier),
+        pm: txt(item.currentPM || item.pm),
+        ce: txt(item.currentChefEquipe || item.chefEquipe || item.ce),
+        ouvrier: txt(item.ouvrier),
+        day: txt(item.tbmDay || item.day),
+        status: norm(item.status || item.statut)==='OK'?'OK':'NOK'
       };
-      if (rawEquipe) {
-        String(rawEquipe).split(/[,;|]/).forEach(add);
-      }
-      if (payloadJson) {
-        try {
-          const obj = typeof payloadJson === 'string' ? JSON.parse(payloadJson) : payloadJson;
-          const eq = obj && obj.equipe;
-          if (Array.isArray(eq)) eq.forEach(add);
-          else if (typeof eq === 'string') eq.split(/[,;|]/).forEach(add);
-        } catch (_) {}
-      }
-      return out;
     }
 
-    function parseRawTbmRows(csvRows) {
-      const head = (csvRows[0] || []).map(cleanHeader);
-      const idx = {
-        sentAt: headerIndex(head, ['sentAt', 'timestamp']),
-        datetime: headerIndex(head, ['datetime', 'dateheure', 'date_heure']),
-        metier: headerIndex(head, ['metier']),
-        chantier: headerIndex(head, ['chantier']),
-        responsable: headerIndex(head, ['responsable', 'ce', 'chefequipe']),
-        equipe: headerIndex(head, ['equipe']),
-        payloadJson: headerIndex(head, ['payloadJson', 'payload_json'])
-      };
-      return csvRows.slice(1).map(r => {
-        const payload = idx.payloadJson >= 0 ? r[idx.payloadJson] : '';
-        let payloadObj = null;
-        if (payload) {
-          try { payloadObj = JSON.parse(payload); } catch (_) {}
-        }
-        const rawDate = (idx.datetime >= 0 ? r[idx.datetime] : '') || (idx.sentAt >= 0 ? r[idx.sentAt] : '') || (payloadObj?.datetime ?? '');
-        const date = toDate(rawDate);
-        if (!date) return null;
-        const metier = normalizeMetier((idx.metier >= 0 ? r[idx.metier] : '') || payloadObj?.metier || '');
-        const chantier = normSpace((idx.chantier >= 0 ? r[idx.chantier] : '') || payloadObj?.chantier || '');
-        const responsable = normSpace((idx.responsable >= 0 ? r[idx.responsable] : '') || payloadObj?.responsable || '');
-        const teamNames = parseEquipeNames(idx.equipe >= 0 ? r[idx.equipe] : '', payloadObj);
-        return {
-          rawDate,
-          date,
-          day: dayKeyFromDate(date),
-          month: monthKeyFromDate(date),
-          isoWeek: getIsoWeek(date),
-          isoYear: getIsoYear(date),
-          metier,
-          chantier,
-          responsable,
-          teamNames,
-          teamKeys: teamNames.map(normKey)
-        };
-      }).filter(Boolean);
+    async function loadConsolidated() {
+      if (!window.TBPM_DATA_URL) throw new Error('TBPM_DATA_URL manquant');
+      const json = await fetchJson(window.TBPM_DATA_URL);
+      if (!json || json.ok === false) throw new Error(json && json.error ? json.error : 'Réponse invalide');
+      const items = Array.isArray(json) ? json : (json.items || json.rows || []);
+      rows = items.map(normalizeApiItem).filter(r => r.ouvrier);
+      loadedMode = 'Source dédiée tbPM';
     }
 
-    function parseAffectationsRows(csvRows) {
-      const head = (csvRows[0] || []).map(cleanHeader);
-      const idx = {
-        annee: headerIndex(head, ['annee', 'annee_iso']),
-        semaine: headerIndex(head, ['semaine', 'semaine_iso']),
-        pm: headerIndex(head, ['pm']),
-        ce: headerIndex(head, ['ce', 'chef_equipe', 'chefequipe']),
-        ouvrier: headerIndex(head, ['ouvrier', 'ouvriers']),
-        chantier: headerIndex(head, ['chantier']),
-        sheet: headerIndex(head, ['sheet', 'feuille'])
-      };
-      return csvRows.slice(1).map(r => {
-        const isoYear = parseInt(r[idx.annee], 10) || currentIsoYear;
-        const week = parseInt(r[idx.semaine], 10) || null;
-        const sheetName = normKey(r[idx.sheet]);
-        const metier = sheetName.includes('EQUIPE_ELEC') ? 'ELEC' : (sheetName.includes('HVAC') ? 'HVAC_REF' : normalizeMetier(sheetName));
-        if (!week || !metier) return null;
-        const weekStart = isoWeekStart(isoYear, week);
-        const months = [];
-        for (let i = 0; i < 7; i += 1) {
-          const d = new Date(weekStart);
-          d.setUTCDate(weekStart.getUTCDate() + i);
-          const mk = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-          if (!months.includes(mk)) months.push(mk);
-        }
-        return {
-          isoYear,
-          week,
-          metier,
-          pm: normSpace(r[idx.pm]),
-          ce: normSpace(r[idx.ce]),
-          ouvrier: normSpace(r[idx.ouvrier]),
-          ouvrierKey: normKey(r[idx.ouvrier]),
-          chantier: normSpace(r[idx.chantier]),
-          chantierKey: normKey(r[idx.chantier]),
-          ceKey: normKey(r[idx.ce]),
-          months
-        };
-      }).filter(r => r && r.ouvrier && r.chantier);
-    }
-
-    function bestMatchEvent(expected, events, selectedDay) {
-      const candidates = events.filter(ev =>
-        ev.metier === expected.metier &&
-        ev.isoYear === expected.isoYear &&
-        String(ev.isoWeek) === String(expected.week) &&
-        ev.teamKeys.includes(expected.ouvrierKey) &&
-        (!selectedDay || ev.day === selectedDay)
-      );
-      if (!candidates.length) return null;
-      let best = null;
-      let bestScore = -1;
-      candidates.forEach(ev => {
-        let score = 0;
-        if (ev.chantier && expected.chantierKey && normKey(ev.chantier) === expected.chantierKey) score += 3;
-        if (ev.responsable && expected.ceKey && normKey(ev.responsable) === expected.ceKey) score += 2;
-        if (!ev.chantier || !expected.chantierKey) score += 1;
-        if (!ev.responsable || !expected.ceKey) score += 1;
-        if (score > bestScore) { bestScore = score; best = ev; }
-      });
-      return best;
-    }
-
-    function buildRowsFromRawSources(affectations, tbmEvents) {
-      const selectedDay = selDay.value || '';
-      return affectations
-        .filter(r => rowMatchesMonth(r, currentMonthKey))
-        .map(r => {
-          const ev = bestMatchEvent(r, tbmEvents, selectedDay);
-          return {
-            source: 'raw_sources',
-            month: currentMonthKey,
-            months: r.months,
-            day: ev ? ev.day : '',
-            week: r.week,
-            metier: r.metier,
-            pm: r.pm,
-            chantier: r.chantier,
-            ce: r.ce,
-            equipe: r.ce,
-            ouvrier: r.ouvrier,
-            status: ev ? 'OK' : 'NOK'
-          };
-        });
-    }
-
-    async function fetchCsv(url) {
-      const res = await fetch(withCacheBust(url), { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
-      if (!res.ok) throw new Error('HTTP ' + res.status + ' pour ' + url);
-      return parseCsv(await res.text());
-    }
-
-    async function loadFromRawSources() {
-      if (!window.EQUIPES_SHEET_BASE_URL || !window.EQUIPES_AFFECTATIONS_GID || !window.TBM_RAW_CSV_URL) return false;
-      const equipesUrl = `${window.EQUIPES_SHEET_BASE_URL}&gid=${window.EQUIPES_AFFECTATIONS_GID}`;
-      const [affCsv, tbmCsv] = await Promise.all([
-        fetchCsv(equipesUrl),
-        fetchCsv(window.TBM_RAW_CSV_URL)
-      ]);
-      const affectations = parseAffectationsRows(affCsv);
-      const tbmEvents = parseRawTbmRows(tbmCsv);
-      rows = buildRowsFromRawSources(affectations, tbmEvents);
-      loadedMode = 'Sources brutes Equipes + tbm';
-      return true;
-    }
-
-    function buildRowsFromLegacyCsv(csvRows) {
-      const head = (csvRows[0] || []).map(h => text(h));
-      const idx = {
-        week: head.indexOf('Week'),
-        metier: head.indexOf('Metier'),
-        pm: head.indexOf('PM'),
-        chantier: head.indexOf('Chantier'),
-        ce: head.indexOf('ChefEquipe'),
-        ouvrier: head.indexOf('Ouvrier'),
-        present: head.indexOf('PresentTBM')
-      };
-      return csvRows.slice(1)
-        .filter(r => r.length && r[idx.week])
-        .map(r => ({
-          source: 'legacy_csv',
-          month: currentMonthKey,
-          months: [currentMonthKey],
-          day: '',
-          week: parseInt(r[idx.week], 10) || text(r[idx.week]),
-          metier: normalizeMetier(r[idx.metier]),
-          pm: text(r[idx.pm]),
-          chantier: text(r[idx.chantier]),
-          ce: text(r[idx.ce]),
-          equipe: text(r[idx.ce]),
-          ouvrier: text(r[idx.ouvrier]),
-          status: normKey(r[idx.present]) === 'OUI' ? 'OK' : 'NOK'
-        }));
-    }
-
-    async function loadLegacyCsvFallback() {
-      const url = window.SUIVI_PMS_CSV_URL;
-      if (!url) throw new Error('SUIVI_PMS_CSV_URL manquant dans sheetConfig.js');
-      rows = buildRowsFromLegacyCsv(await fetchCsv(url));
+    async function loadFallbackCsv() {
+      if (!window.SUIVI_PMS_CSV_URL) throw new Error('SUIVI_PMS_CSV_URL manquant');
+      const res = await fetch(window.SUIVI_PMS_CSV_URL, { cache:'no-store' });
+      if (!res.ok) throw new Error('HTTP '+res.status);
+      const csv = parseCsv(await res.text());
+      const head = (csv[0] || []).map(txt);
+      const idx = { month:-1, metier:head.indexOf('Metier'), pm:head.indexOf('PM'), chantier:head.indexOf('Chantier'), ce:head.indexOf('ChefEquipe'), ouvrier:head.indexOf('Ouvrier'), present:head.indexOf('PresentTBM') };
+      rows = csv.slice(1).filter(r=>r.length && r[idx.ouvrier]>=0).map(r=>({ month: currentMonthKey, metier:norm(r[idx.metier])==='ELEC'?'ELEC':'HVAC_REF', chantier:txt(r[idx.chantier]), pm:txt(r[idx.pm]), ce:txt(r[idx.ce]), ouvrier:txt(r[idx.ouvrier]), day:'', status:norm(r[idx.present])==='OUI'?'OK':'NOK' }));
       loadedMode = 'Fallback CSV actuel';
     }
 
-    async function loadConsolidatedIfAvailable() {
-      const url = window.TBPM_DATA_URL;
-      if (!url) return false;
-      const res = await fetch(withCacheBust(url), { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' } });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const json = await res.json();
-      const items = Array.isArray(json) ? json : (json.items || json.rows || []);
-      rows = items.map(item => ({
-        source: 'consolidated_json',
-        month: text(item.month) || currentMonthKey,
-        months: Array.isArray(item.months) ? item.months : [text(item.month) || currentMonthKey],
-        day: text(item.day),
-        week: item.isoWeek ?? item.week ?? '',
-        metier: normalizeMetier(item.metier),
-        pm: text(item.pm),
-        chantier: text(item.chantier),
-        ce: text(item.chefEquipe || item.ce),
-        equipe: text(item.equipe),
-        ouvrier: text(item.ouvrier),
-        status: normKey(item.status || item.statut) === 'OK' ? 'OK' : 'NOK'
-      }));
-      loadedMode = 'Source consolidée';
-      return true;
-    }
-
     async function load() {
-      sourceModeEl.textContent = 'Source : chargement…';
-      statusEl.textContent = 'Chargement…';
-      try {
-        let ok = false;
-        try { ok = await loadConsolidatedIfAvailable(); } catch (err) { console.warn('TBPM_DATA_URL indisponible.', err); }
-        if (!ok) {
-          try { ok = await loadFromRawSources(); } catch (err) { console.warn('Sources brutes indisponibles.', err); }
-        }
-        if (!ok) await loadLegacyCsvFallback();
-        rebuildDropdowns();
-        refreshView();
-        sourceModeEl.textContent = `Source : ${loadedMode}`;
-      } catch (err) {
-        statusEl.textContent = 'Erreur chargement : ' + err;
-        sourceModeEl.textContent = 'Source : erreur';
-        console.error(err);
-      }
+      sourceModeEl.textContent = 'Source : chargement…'; statusEl.textContent = 'Chargement…';
+      try { await loadConsolidated(); } catch (err) { console.warn(err); await loadFallbackCsv(); }
+      rebuildDropdowns(); refreshView(); sourceModeEl.textContent = `Source : ${loadedMode}`;
     }
 
     async function sendAbsent15(row) {
-      const url = window.ATTESTATION_COLLECT_URL;
-      if (!url) { alert('ATTESTATION_COLLECT_URL non configurée.'); return; }
-      const payload = {
-        data: {
-          metier: row.metier,
-          month: row.month,
-          week: row.week,
-          day: row.day,
-          pm: row.pm,
-          chantier: row.chantier,
-          ce: row.ce,
-          equipe: row.equipe,
-          ouvrier: row.ouvrier,
-          user: row.pm || row.ce || '',
-          flag: 'Absent+15js'
-        }
-      };
-      await fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
+      if (!window.ATTESTATION_COLLECT_URL) { alert('ATTESTATION_COLLECT_URL non configurée.'); return; }
+      const payload = { data: { metier:row.metier, month:row.month, day:row.day, pm:row.pm, chantier:row.chantier, ce:row.ce, equipe:row.ce, ouvrier:row.ouvrier, user:row.pm||row.ce||'', flag:'Absent+15js' } };
+      await fetch(window.ATTESTATION_COLLECT_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify(payload) });
       alert('Signalement envoyé (Absent+15js).');
     }
 
-    [selMetier, selMonth, selChantier, selWeek, selDay, selCE, selPM].forEach(s => {
-      s.addEventListener('change', async () => {
-        if (loadedMode === 'Sources brutes Equipes + tbm') {
-          await loadFromRawSources();
-        }
-        rebuildDropdowns();
-        refreshView();
-      });
-    });
-
-    el('btnReset').addEventListener('click', async () => {
-      selMetier.value = '';
-      selMonth.value = currentMonthKey;
-      selChantier.value = '';
-      selWeek.value = currentIsoWeek;
-      selDay.value = '';
-      selCE.value = '';
-      selPM.value = '';
-      if (loadedMode === 'Sources brutes Equipes + tbm') {
-        await loadFromRawSources();
-      }
-      rebuildDropdowns();
-      refreshView();
-    });
-
-    tbody.addEventListener('click', async (ev) => {
-      const btn = ev.target.closest('button[data-flag="1"]');
-      if (!btn) return;
-      const row = JSON.parse(decodeURIComponent(btn.dataset.row));
-      try { await sendAbsent15(row); } catch (err) { alert('Erreur envoi : ' + err); console.error(err); }
-    });
-
+    [selMetier, selMonth, selChantier, selCE, selPM, selStatus].forEach(s=>s.addEventListener('change', async ()=>{ if (s===selMonth && loadedMode==='Source dédiée tbPM') await loadConsolidated(); rebuildDropdowns(); refreshView(); }));
+    $('btnReset').addEventListener('click', async ()=>{ selMetier.value=''; selMonth.value=currentMonthKey; selChantier.value=''; selCE.value=''; selPM.value=''; selStatus.value=''; if (loadedMode==='Source dédiée tbPM') await loadConsolidated(); rebuildDropdowns(); refreshView(); });
+    tbody.addEventListener('click', async (ev)=>{ const btn = ev.target.closest('button[data-flag="1"]'); if (!btn) return; const row = JSON.parse(decodeURIComponent(btn.dataset.row)); try { await sendAbsent15(row); } catch (err) { alert('Erreur envoi : '+err); console.error(err); } });
     load();
   </script>
 </body>
