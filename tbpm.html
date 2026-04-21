@@ -159,14 +159,6 @@
       renderSummary(baseRows); renderTable(out); statusEl.textContent = `Lignes affichées : ${total}`;
     }
 
-    async function fetchJson(url) {
-      const u = new URL(url, window.location.href); u.searchParams.set('_ts', String(Date.now()));
-      const month = selMonth.value || currentMonthKey; u.searchParams.set('month', month);
-      const res = await fetch(u.toString(), { cache:'no-store', headers:{ 'Cache-Control':'no-cache' } });
-      if (!res.ok) throw new Error('HTTP '+res.status);
-      return res.json();
-    }
-
     function normalizeApiItem(item) {
       const month = txt(item.month) || currentMonthKey;
       return {
@@ -182,9 +174,41 @@
       };
     }
 
+    function loadJsonp(url) {
+      return new Promise((resolve, reject) => {
+        const cbName = `tbpmJsonp_${Date.now()}_${Math.floor(Math.random()*100000)}`;
+        const script = document.createElement('script');
+        const cleanup = () => {
+          if (script.parentNode) script.parentNode.removeChild(script);
+          try { delete window[cbName]; } catch (_) { window[cbName] = undefined; }
+        };
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error('Timeout JSONP'));
+        }, 15000);
+        window[cbName] = (data) => {
+          clearTimeout(timer);
+          cleanup();
+          resolve(data);
+        };
+        script.onerror = () => {
+          clearTimeout(timer);
+          cleanup();
+          reject(new Error('Erreur chargement JSONP'));
+        };
+        const u = new URL(url, window.location.href);
+        const month = selMonth.value || currentMonthKey;
+        u.searchParams.set('month', month);
+        u.searchParams.set('callback', cbName);
+        u.searchParams.set('_ts', String(Date.now()));
+        script.src = u.toString();
+        document.body.appendChild(script);
+      });
+    }
+
     async function loadConsolidated() {
       if (!window.TBPM_DATA_URL) throw new Error('TBPM_DATA_URL manquant');
-      const json = await fetchJson(window.TBPM_DATA_URL);
+      const json = await loadJsonp(window.TBPM_DATA_URL);
       if (!json || json.ok === false) throw new Error(json && json.error ? json.error : 'Réponse invalide');
       const items = Array.isArray(json) ? json : (json.items || json.rows || []);
       rows = items.map(normalizeApiItem).filter(r => r.ouvrier);
