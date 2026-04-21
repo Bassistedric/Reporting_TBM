@@ -134,7 +134,7 @@
               <th>Jour</th>
               <th>Chantier</th>
               <th>PM</th>
-              <th>ChefEquipe</th>
+              <th>Chef d’équipe</th>
               <th>Ouvrier</th>
               <th>Statut</th>
               <th>Action</th>
@@ -164,33 +164,27 @@
         if (inQ) {
           if (c === '"' && textContent[i+1] === '"') { field += '"'; i += 2; continue; }
           if (c === '"') { inQ = false; i++; continue; }
-          field += c; i++; continue;
-        }
+          field += c; i++; continue; }
         if (c === '"') { inQ = true; i++; continue; }
         if (c === ',') { row.push(field); field = ''; i++; continue; }
         if (c === '\n') { row.push(field); rows.push(row); field = ''; row = []; i++; continue; }
         if (c === '\r') { i++; continue; }
-        field += c; i++;
-      }
+        field += c; i++; }
       if (field.length || row.length) { row.push(field); rows.push(row); }
-      return rows;
-    };
+      return rows; };
     const monthKeyFromDate = (raw) => {
       const d = new Date(raw);
       if (Number.isNaN(d.getTime())) return '';
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, '0');
-      return `${y}-${m}`;
-    };
+      return `${y}-${m}`; };
     const dayKeyFromDate = (raw) => {
       const d = new Date(raw);
       if (Number.isNaN(d.getTime())) return '';
-      return d.toISOString().slice(0, 10);
-    };
+      return d.toISOString().slice(0, 10); };
     const currentMonthKey = (() => {
       const d = new Date();
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    })();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; })();
 
     const selMetier = el('selMetier');
     const selMonth = el('selMonth');
@@ -218,11 +212,9 @@
         const o = document.createElement('option');
         o.value = v;
         o.textContent = v;
-        select.appendChild(o);
-      });
+        select.appendChild(o); });
       if ([...select.options].some(o => o.value === prev)) select.value = prev;
-      else select.value = '';
-    }
+      else select.value = ''; }
 
     function getFilters() {
       return {
@@ -232,9 +224,7 @@
         week: selWeek.value,
         day: selDay.value,
         ce: selCE.value,
-        pm: selPM.value
-      };
-    }
+        pm: selPM.value }; }
 
     function filterRows(data, f) {
       return data.filter(r =>
@@ -244,58 +234,31 @@
         (!f.week || String(r.week) === String(f.week)) &&
         (!f.day || r.day === f.day) &&
         (!f.ce || r.ce === f.ce) &&
-        (!f.pm || r.pm === f.pm)
-      );
-    }
+        (!f.pm || r.pm === f.pm)); }
 
     function rebuildDropdowns() {
       const f = getFilters();
       setOptions(selMetier, [...new Set(rows.map(r => r.metier).filter(Boolean))].sort(), '(Tous)');
 
-      const months = [...new Set(rows
-        .filter(r => !f.metier || r.metier === f.metier)
-        .map(r => r.month)
-        .filter(Boolean)
-      )].sort();
+      const months = [...new Set(rows.filter(r => !f.metier || r.metier === f.metier).map(r => r.month).filter(Boolean))].sort();
       setOptions(selMonth, months, '(Mois en cours)');
       if (!selMonth.value && months.includes(currentMonthKey)) selMonth.value = currentMonthKey;
 
       const f2 = getFilters();
-      const chantiers = [...new Set(rows
-        .filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month))
-        .map(r => r.chantier)
-        .filter(Boolean)
-      )].sort((a,b)=>a.localeCompare(b,'fr'));
+      const chantiers = [...new Set(rows.filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month)).map(r => r.chantier).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
       setOptions(selChantier, chantiers, '(Tous)');
 
-      const weeks = [...new Set(rows
-        .filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month) && (!f2.chantier || r.chantier === f2.chantier))
-        .map(r => String(r.week))
-        .filter(Boolean)
-      )].sort((a,b)=>+a-+b);
+      const weeks = [...new Set(rows.filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month) && (!f2.chantier || r.chantier === f2.chantier)).map(r => String(r.week)).filter(Boolean))].sort((a,b)=>+a-+b);
       setOptions(selWeek, weeks, '(Toutes)');
 
-      const days = [...new Set(rows
-        .filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month) && (!f2.chantier || r.chantier === f2.chantier) && (!f2.week || String(r.week) === String(f2.week)))
-        .map(r => r.day)
-        .filter(Boolean)
-      )].sort();
+      const days = [...new Set(rows.filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month) && (!f2.chantier || r.chantier === f2.chantier) && (!f2.week || String(r.week) === String(f2.week))).map(r => r.day).filter(Boolean))].sort();
       setOptions(selDay, days, '(Tous)');
 
-      const ces = [...new Set(rows
-        .filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month) && (!f2.chantier || r.chantier === f2.chantier) && (!f2.week || String(r.week) === String(f2.week)) && (!f2.day || r.day === f2.day))
-        .map(r => r.ce)
-        .filter(Boolean)
-      )].sort((a,b)=>a.localeCompare(b,'fr'));
+      const ces = [...new Set(rows.filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month) && (!f2.chantier || r.chantier === f2.chantier) && (!f2.week || String(r.week) === String(f2.week)) && (!f2.day || r.day === f2.day)).map(r => r.ce).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
       setOptions(selCE, ces, '(Tous)');
 
-      const pms = [...new Set(rows
-        .filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month) && (!f2.chantier || r.chantier === f2.chantier) && (!f2.week || String(r.week) === String(f2.week)) && (!f2.day || r.day === f2.day) && (!f2.ce || r.ce === f2.ce))
-        .map(r => r.pm)
-        .filter(Boolean)
-      )].sort((a,b)=>a.localeCompare(b,'fr'));
-      setOptions(selPM, pms, '(Tous)');
-    }
+      const pms = [...new Set(rows.filter(r => (!f2.metier || r.metier === f2.metier) && (!f2.month || r.month === f2.month) && (!f2.chantier || r.chantier === f2.chantier) && (!f2.week || String(r.week) === String(f2.week)) && (!f2.day || r.day === f2.day) && (!f2.ce || r.ce === f2.ce)).map(r => r.pm).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
+      setOptions(selPM, pms, '(Tous)'); }
 
     function renderSummary(baseRows) {
       summaryBody.innerHTML = '';
@@ -305,16 +268,13 @@
         if (!grouped.has(key)) grouped.set(key, { ok:0, nok:0, total:0 });
         const g = grouped.get(key);
         g.total += 1;
-        if (r.status === 'OK') g.ok += 1; else g.nok += 1;
-      });
+        if (r.status === 'OK') g.ok += 1; else g.nok += 1; });
       [...grouped.entries()].sort((a,b)=>a[0].localeCompare(b[0],'fr')).forEach(([metier, g]) => {
         const tr = document.createElement('tr');
         const pct = g.total ? Math.round((g.ok / g.total) * 100) + '%' : '-';
         tr.innerHTML = `<td>${metier}</td><td>${g.ok}</td><td>${g.nok}</td><td>${g.total}</td><td>${pct}</td>`;
-        summaryBody.appendChild(tr);
-      });
-      el('globalSummaryCard').style.display = getFilters().metier ? 'none' : '';
-    }
+        summaryBody.appendChild(tr); });
+      el('globalSummaryCard').style.display = getFilters().metier ? 'none' : ''; }
 
     function renderTable(out) {
       tbody.innerHTML = '';
@@ -328,26 +288,10 @@
         (a.ouvrier || '').localeCompare(b.ouvrier || '', 'fr')
       ).forEach(r => {
         const tr = document.createElement('tr');
-        const pill = r.status === 'OK'
-          ? '<span class="pill ok">OK</span>'
-          : '<span class="pill nok">NOK</span>';
-        const canFlag = r.status !== 'OK';
-        const btn = canFlag ? `<button class="btn" data-flag="1" data-row='${encodeURIComponent(JSON.stringify(r))}'>Absent+15js</button>` : '';
-        tr.innerHTML = `
-          <td>${r.metier || ''}</td>
-          <td>${r.month || ''}</td>
-          <td>${r.week || ''}</td>
-          <td>${r.day || ''}</td>
-          <td>${r.chantier || ''}</td>
-          <td>${r.pm || ''}</td>
-          <td>${r.ce || ''}</td>
-          <td>${r.ouvrier || ''}</td>
-          <td>${pill}</td>
-          <td class="actionsCell">${btn}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+        const pill = r.status === 'OK' ? '<span class="pill ok">OK</span>' : '<span class="pill nok">NOK</span>';
+        const btn = r.status !== 'OK' ? `<button class="btn" data-flag="1" data-row='${encodeURIComponent(JSON.stringify(r))}'>Absent+15js</button>` : '';
+        tr.innerHTML = `<td>${r.metier || ''}</td><td>${r.month || ''}</td><td>${r.week || ''}</td><td>${r.day || ''}</td><td>${r.chantier || ''}</td><td>${r.pm || ''}</td><td>${r.ce || ''}</td><td>${r.ouvrier || ''}</td><td>${pill}</td><td class="actionsCell">${btn}</td>`;
+        tbody.appendChild(tr); }); }
 
     function refreshView() {
       const baseRows = filterRows(rows, { ...getFilters(), chantier:'', week:'', day:'', ce:'', pm:'' });
@@ -361,64 +305,20 @@
       el('kpiPct').textContent = total ? Math.round((ok / total) * 100) + '%' : '-';
       renderSummary(baseRows);
       renderTable(out);
-      statusEl.textContent = `Lignes affichées : ${total}`;
-    }
+      statusEl.textContent = `Lignes affichées : ${total}`; }
 
     function buildRowsFromLegacyCsv(csvRows) {
       const head = (csvRows[0] || []).map(h => text(h));
-      const idx = {
-        gen: head.indexOf('GeneratedAt'),
-        week: head.indexOf('Week'),
-        metier: head.indexOf('Metier'),
-        pm: head.indexOf('PM'),
-        chantier: head.indexOf('Chantier'),
-        ce: head.indexOf('ChefEquipe'),
-        ouvrier: head.indexOf('Ouvrier'),
-        present: head.indexOf('PresentTBM'),
-        last: head.indexOf('LastTBMDate')
-      };
-      return csvRows.slice(1)
-        .filter(r => r.length && r[idx.week])
-        .map(r => {
-          const last = text(r[idx.last]);
-          const month = monthKeyFromDate(last) || currentMonthKey;
-          const day = dayKeyFromDate(last);
-          const status = norm(r[idx.present]) === 'OUI' ? 'OK' : 'NOK';
-          return {
-            source: 'legacy_csv',
-            generatedAt: text(r[idx.gen]),
-            month,
-            day,
-            week: parseInt(r[idx.week], 10) || text(r[idx.week]),
-            metier: norm(r[idx.metier]),
-            pm: text(r[idx.pm]),
-            chantier: text(r[idx.chantier]),
-            ce: text(r[idx.ce]),
-            equipe: text(r[idx.ce]),
-            ouvrier: text(r[idx.ouvrier]),
-            status,
-            last
-          };
-        });
-    }
+      const idx = { gen: head.indexOf('GeneratedAt'), week: head.indexOf('Week'), metier: head.indexOf('Metier'), pm: head.indexOf('PM'), chantier: head.indexOf('Chantier'), ce: head.indexOf('ChefEquipe'), ouvrier: head.indexOf('Ouvrier'), present: head.indexOf('PresentTBM'), last: head.indexOf('LastTBMDate') };
+      return csvRows.slice(1).filter(r => r.length && r[idx.week]).map(r => {
+        const last = text(r[idx.last]);
+        const month = monthKeyFromDate(last) || currentMonthKey;
+        const day = dayKeyFromDate(last);
+        const status = norm(r[idx.present]) === 'OUI' ? 'OK' : 'NOK';
+        return { source: 'legacy_csv', generatedAt: text(r[idx.gen]), month, day, week: parseInt(r[idx.week], 10) || text(r[idx.week]), metier: norm(r[idx.metier]), pm: text(r[idx.pm]), chantier: text(r[idx.chantier]), ce: text(r[idx.ce]), equipe: text(r[idx.ce]), ouvrier: text(r[idx.ouvrier]), status, last }; }); }
 
     function buildRowsFromConsolidatedJson(items) {
-      return (items || []).map(item => ({
-        source: 'consolidated_json',
-        generatedAt: text(item.generatedAt),
-        month: text(item.month) || monthKeyFromDate(item.lastTbmDate) || currentMonthKey,
-        day: text(item.day) || dayKeyFromDate(item.lastTbmDate),
-        week: item.isoWeek ?? item.week ?? '',
-        metier: norm(item.metier),
-        pm: text(item.pm),
-        chantier: text(item.chantier),
-        ce: text(item.chefEquipe || item.ce),
-        equipe: text(item.equipe),
-        ouvrier: text(item.ouvrier),
-        status: norm(item.status || item.statut) === 'OK' ? 'OK' : 'NOK',
-        last: text(item.lastTbmDate || item.last)
-      })).filter(r => r.ouvrier || r.chantier || r.ce || r.pm);
-    }
+      return (items || []).map(item => ({ source: 'consolidated_json', generatedAt: text(item.generatedAt), month: text(item.month) || monthKeyFromDate(item.lastTbmDate) || currentMonthKey, day: text(item.day) || dayKeyFromDate(item.lastTbmDate), week: item.isoWeek ?? item.week ?? '', metier: norm(item.metier), pm: text(item.pm), chantier: text(item.chantier), ce: text(item.chefEquipe || item.ce), equipe: text(item.equipe), ouvrier: text(item.ouvrier), status: norm(item.status || item.statut) === 'OK' ? 'OK' : 'NOK', last: text(item.lastTbmDate || item.last) })).filter(r => r.ouvrier || r.chantier || r.ce || r.pm); }
 
     async function loadConsolidatedIfAvailable() {
       const url = window.TBPM_DATA_URL;
@@ -429,8 +329,7 @@
       const items = Array.isArray(json) ? json : (json.items || json.rows || []);
       rows = buildRowsFromConsolidatedJson(items);
       loadedMode = 'Source consolidée';
-      return true;
-    }
+      return true; }
 
     async function loadLegacyCsvFallback() {
       const url = window.SUIVI_PMS_CSV_URL;
@@ -439,19 +338,14 @@
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const csvText = await res.text();
       rows = buildRowsFromLegacyCsv(parseCsv(csvText));
-      loadedMode = 'Fallback CSV actuel';
-    }
+      loadedMode = 'Fallback CSV actuel'; }
 
     async function load() {
       sourceModeEl.textContent = 'Source : chargement…';
       statusEl.textContent = 'Chargement…';
       try {
         let usedConsolidated = false;
-        try {
-          usedConsolidated = await loadConsolidatedIfAvailable();
-        } catch (err) {
-          console.warn('TBPM_DATA_URL indisponible, fallback CSV.', err);
-        }
+        try { usedConsolidated = await loadConsolidatedIfAvailable(); } catch (err) { console.warn('TBPM_DATA_URL indisponible, fallback CSV.', err); }
         if (!usedConsolidated) await loadLegacyCsvFallback();
         rebuildDropdowns();
         refreshView();
@@ -459,43 +353,16 @@
       } catch (err) {
         statusEl.textContent = 'Erreur chargement : ' + err;
         sourceModeEl.textContent = 'Source : erreur';
-        console.error(err);
-      }
-    }
+        console.error(err); } }
 
     async function sendAbsent15(row) {
       const url = window.ATTESTATION_COLLECT_URL;
-      if (!url) {
-        alert('ATTESTATION_COLLECT_URL non configurée.');
-        return;
-      }
-      const payload = {
-        data: {
-          metier: row.metier,
-          month: row.month,
-          week: row.week,
-          day: row.day,
-          pm: row.pm,
-          chantier: row.chantier,
-          ce: row.ce,
-          equipe: row.equipe,
-          ouvrier: row.ouvrier,
-          user: row.pm || row.ce || '',
-          flag: 'Absent+15js'
-        }
-      };
-      await fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-      alert('Signalement envoyé (Absent+15js).');
-    }
+      if (!url) { alert('ATTESTATION_COLLECT_URL non configurée.'); return; }
+      const payload = { data: { metier: row.metier, month: row.month, week: row.week, day: row.day, pm: row.pm, chantier: row.chantier, ce: row.ce, equipe: row.equipe, ouvrier: row.ouvrier, user: row.pm || row.ce || '', flag: 'Absent+15js' } };
+      await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+      alert('Signalement envoyé (Absent+15js).'); }
 
-    [selMetier, selMonth, selChantier, selWeek, selDay, selCE, selPM].forEach(s => {
-      s.addEventListener('change', () => { rebuildDropdowns(); refreshView(); });
-    });
+    [selMetier, selMonth, selChantier, selWeek, selDay, selCE, selPM].forEach(s => { s.addEventListener('change', () => { rebuildDropdowns(); refreshView(); }); });
 
     el('btnReset').addEventListener('click', () => {
       selMetier.value = '';
@@ -506,20 +373,13 @@
       selCE.value = '';
       selPM.value = '';
       rebuildDropdowns();
-      refreshView();
-    });
+      refreshView(); });
 
     tbody.addEventListener('click', async (ev) => {
       const btn = ev.target.closest('button[data-flag="1"]');
       if (!btn) return;
       const row = JSON.parse(decodeURIComponent(btn.dataset.row));
-      try {
-        await sendAbsent15(row);
-      } catch (err) {
-        alert('Erreur envoi : ' + err);
-        console.error(err);
-      }
-    });
+      try { await sendAbsent15(row); } catch (err) { alert('Erreur envoi : ' + err); console.error(err); } });
 
     load();
   </script>
