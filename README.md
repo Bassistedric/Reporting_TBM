@@ -52,3 +52,9 @@ index 152b604093a6d0219351010f97e5dd0dfb882055..7a0bccdd7a3571227dd1642f810fe735
 +- Renseigner `Utilisateur`
 +- Cliquer `Absent+15js` à côté d'un ouvrier pour envoyer directement la ligne
 +  dans `ABSENCES`
+
+
+## Signalement absence (tbpm/attestation)
+
+- Le webhook `Code.gs` écrit maintenant directement dans la feuille `tbm`.
+- Lors d'un envoi `Absent+15js`, la colonne `chantier` est forcée à `Signalé absent` et colorée en rouge.
