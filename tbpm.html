@@ -337,10 +337,13 @@
     }
 
     async function sendAbsent15(row) {
-      if (window.ATTESTATION_COLLECT_URL) {
-        const payload = { data: { metier:row.metier, month:row.month, day:row.day, pm:row.pm, chantier:'Signalé absent', chantierOriginal:row.chantier, ce:row.ce, equipe:row.ce, ouvrier:row.ouvrier, user:row.pm||row.ce||'', flag:'Absent+15js', status:'OK' } };
-        await fetch(window.ATTESTATION_COLLECT_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify(payload) });
+      const collectUrl = window.TBM_COLLECT_URL || window.ATTESTATION_COLLECT_URL;
+      if (!collectUrl) {
+        alert('TBM_COLLECT_URL / ATTESTATION_COLLECT_URL non configurée.');
+        return;
       }
+      const payload = { data: { metier:row.metier, month:row.month, day:row.day, pm:row.pm, chantier:'Signalé absent', chantierOriginal:row.chantier, ce:row.ce, equipe:row.ce, ouvrier:row.ouvrier, user:row.pm||row.ce||'', flag:'Absent+15js', status:'OK' } };
+      await fetch(collectUrl, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify(payload) });
       openMailClient(row);
     }
 

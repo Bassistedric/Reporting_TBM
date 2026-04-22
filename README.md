@@ -58,3 +58,5 @@ index 152b604093a6d0219351010f97e5dd0dfb882055..7a0bccdd7a3571227dd1642f810fe735
 
 - Le webhook `Code.gs` écrit maintenant directement dans la feuille `tbm`.
 - Lors d'un envoi `Absent+15js`, la colonne `chantier` est forcée à `Signalé absent` et colorée en rouge.
+
+- Pour que les envois apparaissent dans `LMRA_data_base > tbm`, configurez `TBM_COLLECT_URL` avec l'URL `/exec` du déploiement Apps Script correspondant.
