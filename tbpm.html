@@ -351,6 +351,9 @@ async function sendAbsent15(row) {
     }
   };
 
+  console.log('Absent+15js URL =', collectUrl);
+  console.log('Absent+15js payload =', payload);
+
   await fetch(collectUrl, {
     method: 'POST',
     mode: 'no-cors',
