@@ -342,7 +342,6 @@
         await fetch(window.ATTESTATION_COLLECT_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify(payload) });
       }
       openMailClient(row);
-      alert('Signalement envoyé (Absent+15js).');
     }
 
     [selMetier, selMonth, selChantier, selCE, selPM, selStatus].forEach(s=>s.addEventListener('change', async ()=>{
@@ -376,6 +375,8 @@
       if (!btn) return;
       const row = JSON.parse(decodeURIComponent(btn.dataset.row));
       try {
+        const confirmed = await askConfirmation(row);
+        if (!confirmed) return;
         await sendAbsent15(row);
       } catch (err) {
         alert('Erreur envoi : '+err);
