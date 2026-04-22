@@ -32,11 +32,38 @@
 .btnDangerLight:hover{
   filter: brightness(0.98);
 }
-.btnMini{
+    .btnMini{
   padding: 8px 10px;
   font-size: 12px;
   border-radius: 10px;
 }
+.btnPrimary{
+  background: var(--vma-blue);
+  color: #fff;
+  border: 1px solid #0d3b4f;
+}
+.sourceBox .btn{
+  margin-left: auto;
+}
+.confirmOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.38);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.confirmBox{
+  width: min(540px, calc(100vw - 24px));
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  padding: 16px;
+}
+.confirmTitle{font-weight:800;margin:0 0 8px}
+.confirmActions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
   </style>
 </head>
 <body>
@@ -46,7 +73,7 @@
     <div class="card">
       <div class="sectionTitle">Vue de suivi TBM</div>
       <div class="muted">Logique mensuelle : un ouvrier est OK s’il a reçu un TBM dans le mois. Le chantier, le PM et le chef d’équipe servent au suivi opérationnel.</div>
-      <div class="sourceBox" style="margin-top:8px"><span class="pill warn" id="sourceMode">Source : chargement…</span><span class="muted" id="status">Chargement…</span></div>
+      <div class="sourceBox" style="margin-top:8px"><span class="pill warn" id="sourceMode">Source : chargement…</span><span class="muted" id="status">Chargement…</span><button class="btn" id="btnReloadData">Rafraichir les données</button></div>
     </div>
 
     <div class="card">
@@ -80,6 +107,17 @@
     </div>
   </div>
 
+  <div class="confirmOverlay" id="confirmOverlay" aria-hidden="true">
+    <div class="confirmBox" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMsg">
+      <p class="confirmTitle" id="confirmTitle">Confirmer l’envoi</p>
+      <div class="muted" id="confirmMsg"></div>
+      <div class="confirmActions">
+        <button class="btn" id="btnConfirmCancel">Annuler</button>
+        <button class="btn btnPrimary" id="btnConfirmSend">Envoyer</button>
+      </div>
+    </div>
+  </div>
+
   <script src="./sheetConfig.js"></script>
   <script>
     const $ = (id) => document.getElementById(id);
@@ -88,6 +126,8 @@
     const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
     const selMetier = $('selMetier'), selMonth = $('selMonth'), selChantier = $('selChantier'), selCE = $('selCE'), selPM = $('selPM'), selStatus = $('selStatus');
     const statusEl = $('status'), sourceModeEl = $('sourceMode'), tbody = document.querySelector('#tbl tbody'), summaryBody = $('summaryBody');
+    const confirmOverlay = $('confirmOverlay'), confirmMsg = $('confirmMsg');
+    let confirmResolve = null;
     let rows = [], loadedMode = '';
 
     function parseCsv(textContent) {
@@ -259,10 +299,34 @@
       }
     }
 
+    function openMailClient(row) {
+      const to = 'qhse.sud@vma.be';
+      const subject = 'Signalement absence +15 jours';
+      const body = `Cette personne: ${row.ouvrier}, a été déclarée absente de + de 15 jours.`;
+      const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailto;
+    }
+
+    function askConfirmation(row) {
+      confirmMsg.textContent = `Cette personne: ${row.ouvrier}, a été déclarée absente de + de 15 jours.`;
+      confirmOverlay.style.display = 'flex';
+      confirmOverlay.setAttribute('aria-hidden', 'false');
+      return new Promise((resolve) => { confirmResolve = resolve; });
+    }
+
+    function closeConfirmation(result) {
+      confirmOverlay.style.display = 'none';
+      confirmOverlay.setAttribute('aria-hidden', 'true');
+      if (confirmResolve) confirmResolve(result);
+      confirmResolve = null;
+    }
+
     async function sendAbsent15(row) {
-      if (!window.ATTESTATION_COLLECT_URL) { alert('ATTESTATION_COLLECT_URL non configurée.'); return; }
-      const payload = { data: { metier:row.metier, month:row.month, day:row.day, pm:row.pm, chantier:row.chantier, ce:row.ce, equipe:row.ce, ouvrier:row.ouvrier, user:row.pm||row.ce||'', flag:'Absent+15js' } };
-      await fetch(window.ATTESTATION_COLLECT_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify(payload) });
+      if (window.ATTESTATION_COLLECT_URL) {
+        const payload = { data: { metier:row.metier, month:row.month, day:row.day, pm:row.pm, chantier:row.chantier, ce:row.ce, equipe:row.ce, ouvrier:row.ouvrier, user:row.pm||row.ce||'', flag:'Absent+15js' } };
+        await fetch(window.ATTESTATION_COLLECT_URL, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify(payload) });
+      }
+      openMailClient(row);
       alert('Signalement envoyé (Absent+15js).');
     }
 
@@ -287,7 +351,24 @@
       }
     });
 
-    tbody.addEventListener('click', async (ev)=>{ const btn = ev.target.closest('button[data-flag="1"]'); if (!btn) return; const row = JSON.parse(decodeURIComponent(btn.dataset.row)); try { await sendAbsent15(row); } catch (err) { alert('Erreur envoi : '+err); console.error(err); } });
+    $('btnReloadData').addEventListener('click', async ()=>{ await load(); });
+    $('btnConfirmCancel').addEventListener('click', ()=>closeConfirmation(false));
+    $('btnConfirmSend').addEventListener('click', ()=>closeConfirmation(true));
+    confirmOverlay.addEventListener('click', (ev)=>{ if (ev.target === confirmOverlay) closeConfirmation(false); });
+
+    tbody.addEventListener('click', async (ev)=>{
+      const btn = ev.target.closest('button[data-flag="1"]');
+      if (!btn) return;
+      const row = JSON.parse(decodeURIComponent(btn.dataset.row));
+      try {
+        const accepted = await askConfirmation(row);
+        if (!accepted) return;
+        await sendAbsent15(row);
+      } catch (err) {
+        alert('Erreur envoi : '+err);
+        console.error(err);
+      }
+    });
     load();
   </script>
 </body>
