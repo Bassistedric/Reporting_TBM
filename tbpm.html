@@ -344,6 +344,19 @@
       openMailClient(row);
     }
 
+    function markRowAsOk(row) {
+      const sameRow = (r) =>
+        r.ouvrier === row.ouvrier &&
+        r.month === row.month &&
+        r.metier === row.metier &&
+        r.chantier === row.chantier &&
+        r.pm === row.pm &&
+        r.ce === row.ce;
+
+      rows = rows.map((r) => sameRow(r) ? { ...r, status:'OK' } : r);
+      refreshView();
+    }
+
     [selMetier, selMonth, selChantier, selCE, selPM, selStatus].forEach(s=>s.addEventListener('change', async ()=>{
       try {
         if (s===selMonth && loadedMode==='Source dédiée tbPM') await loadConsolidated();
@@ -378,6 +391,7 @@
         const confirmed = await askConfirmation(row);
         if (!confirmed) return;
         await sendAbsent15(row);
+        markRowAsOk(row);
       } catch (err) {
         alert('Erreur envoi : '+err);
         console.error(err);
