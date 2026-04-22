@@ -314,13 +314,6 @@
       }
     }
 
-    function openMailClient(row) {
-      const to = 'qhse.sud@vma.be';
-      const subject = 'Signalement absence +15 jours';
-      const body = `Cette personne: ${row.ouvrier}, a été déclarée absente de + de 15 jours.`;
-      const mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.location.href = mailto;
-    }
 
     function askConfirmation(row) {
       confirmMsg.textContent = `Cette personne: ${row.ouvrier}, a été déclarée absente de + de 15 jours.`;
@@ -336,16 +329,38 @@
       confirmResolve = null;
     }
 
-    async function sendAbsent15(row) {
-      const collectUrl = window.TBM_COLLECT_URL || window.ATTESTATION_COLLECT_URL;
-      if (!collectUrl) {
-        alert('TBM_COLLECT_URL / ATTESTATION_COLLECT_URL non configurée.');
-        return;
-      }
-      const payload = { data: { metier:row.metier, month:row.month, day:row.day, pm:row.pm, chantier:'Signalé absent', chantierOriginal:row.chantier, ce:row.ce, equipe:row.ce, ouvrier:row.ouvrier, user:row.pm||row.ce||'', flag:'Absent+15js', status:'OK' } };
-      await fetch(collectUrl, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body:JSON.stringify(payload) });
-      openMailClient(row);
+async function sendAbsent15(row) {
+  const collectUrl = window.TBM_COLLECT_URL || window.ATTESTATION_COLLECT_URL;
+  if (!collectUrl) {
+    throw new Error('TBM_COLLECT_URL / ATTESTATION_COLLECT_URL non configurée.');
+  }
+
+  const payload = {
+    type: 'absent_15j',
+    meta: {
+      formType: 'absent_15j',
+      sentAt: new Date().toISOString(),
+      userAgent: navigator.userAgent
+    },
+    data: {
+      datetime: new Date().toISOString(),
+      metier: row.metier,
+      chantier: row.chantier,
+      ce: row.ce,
+      pm: row.pm,
+      ouvrier: row.ouvrier,
+      user: row.pm || row.ce || '',
+      flag: 'Absent+15js'
     }
+  };
+
+  await fetch(collectUrl, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+}
 
     function markRowAsOk(row) {
       const sameRow = (r) =>
