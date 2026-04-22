@@ -264,7 +264,7 @@
         const url = window.ATTESTATION_COLLECT_URL;
         if (!url) { alert("ATTESTATION_COLLECT_URL non configurée."); return; }
 
-        const payload = { data: { ...f, ouvrier, user: f.pm, flag: 'Absent+15js' } };
+        const payload = { data: { ...f, chantier:'Signalé absent', chantierOriginal:f.chantier, ouvrier, user: f.pm, flag: 'Absent+15js', status:'OK' } };
 
         await fetch(url, {
           method:'POST',

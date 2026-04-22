@@ -1,48 +1,71 @@
-diff --git a/attestation/Code.gs b/attestation/Code.gs
-new file mode 100644
-index 0000000000000000000000000000000000000000..f9e98ca23ca35a8f8794ced4f7a10d454d720a86
---- /dev/null
-+++ b/attestation/Code.gs
-@@ -0,0 +1,36 @@
-+const ABSENCES_SHEET_NAME = 'ABSENCES';
-+
-+function doPost(e) {
-+  const payload = JSON.parse(e.postData.contents || '{}');
-+  const data = payload.data || {};
-+
-+  const headers = ['timestamp', 'week', 'metier', 'pm', 'chantier', 'ce', 'ouvrier', 'user', 'flag'];
-+  const sh = getSheetByNameOrCreate(ABSENCES_SHEET_NAME, headers);
-+  sh.appendRow([
-+    new Date().toISOString(),
-+    data.week || '',
-+    data.metier || '',
-+    data.pm || '',
-+    data.chantier || '',
-+    data.ce || '',
-+    data.ouvrier || '',
-+    data.user || '',
-+    data.flag || 'Absent+15js'
-+  ]);
-+
-+  return respond({ ok: true, sheet: ABSENCES_SHEET_NAME, row: sh.getLastRow() });
-+}
-+
-+function getSheetByNameOrCreate(name, headers) {
-+  const ss = SpreadsheetApp.getActive();
-+  let sh = ss.getSheetByName(name);
-+  if (!sh) {
-+    sh = ss.insertSheet(name);
-+    sh.appendRow(headers);
-+  }
-+  return sh;
-+}
-+
-+function respond(obj) {
-+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
-+}
-export const APP_NAME = "tbPM";
+const TBM_SHEET_NAME = 'tbm';
+const CHANTIER_LABEL_ABSENT = 'Signalé absent';
+const CHANTIER_COLOR_ABSENT = '#ff0000';
 
-if (typeof window !== 'undefined') {
-  Object.assign(window, { APP_NAME, SHEET_BASE_URL, METIER_TO_GID, TBM_GID, SUIVI_PMS_CSV_URL, COLLECT_URL, ATTESTATION_COLLECT_URL });
+function doPost(e) {
+  const payload = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+  const data = payload.data || {};
+
+  const sh = getSheetByName_(TBM_SHEET_NAME);
+  const headerMap = getHeaderMap_(sh);
+
+  const rowValues = buildRowValues_(headerMap, data);
+  const rowIndex = sh.getLastRow() + 1;
+  sh.getRange(rowIndex, 1, 1, rowValues.length).setValues([rowValues]);
+
+  colorChantierCell_(sh, rowIndex, headerMap);
+
+  return respond_({ ok: true, sheet: TBM_SHEET_NAME, row: rowIndex });
 }
 
+function getSheetByName_(name) {
+  const ss = SpreadsheetApp.getActive();
+  const sh = ss.getSheetByName(name);
+  if (!sh) throw new Error('Feuille introuvable: ' + name);
+  return sh;
+}
+
+function getHeaderMap_(sheet) {
+  const lastCol = Math.max(sheet.getLastColumn(), 1);
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map((h) => String(h || '').trim().toLowerCase());
+  const map = {};
+  headers.forEach((h, i) => {
+    if (h) map[h] = i;
+  });
+  return map;
+}
+
+function buildRowValues_(headerMap, data) {
+  const lastIndex = Object.values(headerMap).length ? Math.max.apply(null, Object.values(headerMap)) : 0;
+  const row = new Array(lastIndex + 1).fill('');
+
+  const set = (headerName, value) => {
+    const key = String(headerName || '').toLowerCase();
+    if (typeof headerMap[key] === 'number') row[headerMap[key]] = value;
+  };
+
+  set('timestamp', new Date().toISOString());
+  set('month', data.month || '');
+  set('day', data.day || '');
+  set('metier', data.metier || '');
+  set('pm', data.pm || '');
+  set('chantier', CHANTIER_LABEL_ABSENT);
+  set('ce', data.ce || '');
+  set('equipe', data.equipe || data.ce || '');
+  set('ouvrier', data.ouvrier || '');
+  set('user', data.user || data.pm || data.ce || '');
+  set('flag', data.flag || 'Absent+15js');
+  set('status', 'OK');
+
+  return row;
+}
+
+function colorChantierCell_(sheet, rowIndex, headerMap) {
+  const chantierColIndex = headerMap.chantier;
+  if (typeof chantierColIndex !== 'number') return;
+  sheet.getRange(rowIndex, chantierColIndex + 1).setFontColor(CHANTIER_COLOR_ABSENT);
+}
+
+function respond_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
