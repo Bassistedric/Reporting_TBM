@@ -42,6 +42,21 @@
   color: #fff;
   border: 1px solid #0d3b4f;
 }
+.btnLightBlue{
+  background: #dbeafe;
+  color: #0b3d91;
+  border: 1px solid #93c5fd;
+}
+.btnSuccess{
+  background: #16a34a;
+  color: #fff;
+  border: 1px solid #15803d;
+}
+.btnDanger{
+  background: #dc2626;
+  color: #fff;
+  border: 1px solid #b91c1c;
+}
 .sourceBox .btn{
   margin-left: auto;
 }
@@ -73,7 +88,7 @@
     <div class="card">
       <div class="sectionTitle">Vue de suivi TBM</div>
       <div class="muted">Logique mensuelle : un ouvrier est OK s’il a reçu un TBM dans le mois. Le chantier, le PM et le chef d’équipe servent au suivi opérationnel.</div>
-      <div class="sourceBox" style="margin-top:8px"><span class="pill warn" id="sourceMode">Source : chargement…</span><span class="muted" id="status">Chargement…</span><button class="btn" id="btnReloadData">Rafraichir les données</button></div>
+      <div class="sourceBox" style="margin-top:8px"><span class="pill warn" id="sourceMode">Source : chargement…</span><span class="muted" id="status">Chargement…</span><button class="btn btnLightBlue" id="btnReloadData">Rafraichir les données</button></div>
     </div>
 
     <div class="card">
@@ -84,7 +99,7 @@
         <div class="field"><label>Chef d’équipe actuel</label><select id="selCE"></select></div>
         <div class="field"><label>PM actuel</label><select id="selPM"></select></div>
         <div class="field"><label>Statut</label><select id="selStatus"></select></div>
-        <div><button class="btn" id="btnReset">Réinitialiser</button></div>
+        <div><button class="btn btnLightBlue" id="btnReset">Réinitialiser</button></div>
       </div>
     </div>
 
@@ -112,8 +127,8 @@
       <p class="confirmTitle" id="confirmTitle">Confirmer l’envoi</p>
       <div class="muted" id="confirmMsg"></div>
       <div class="confirmActions">
-        <button class="btn" id="btnConfirmCancel">Annuler</button>
-        <button class="btn btnPrimary" id="btnConfirmSend">Envoyer</button>
+        <button class="btn btnDanger" id="btnConfirmCancel">Annuler</button>
+        <button class="btn btnSuccess" id="btnConfirmSend">Envoyer</button>
       </div>
     </div>
   </div>
@@ -361,8 +376,6 @@
       if (!btn) return;
       const row = JSON.parse(decodeURIComponent(btn.dataset.row));
       try {
-        const accepted = await askConfirmation(row);
-        if (!accepted) return;
         await sendAbsent15(row);
       } catch (err) {
         alert('Erreur envoi : '+err);
