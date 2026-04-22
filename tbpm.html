@@ -330,10 +330,7 @@
     }
 
 async function sendAbsent15(row) {
-  const collectUrl = window.TBM_COLLECT_URL || window.ATTESTATION_COLLECT_URL;
-  if (!collectUrl) {
-    throw new Error('TBM_COLLECT_URL / ATTESTATION_COLLECT_URL non configurée.');
-  }
+  const collectUrl = 'https://script.google.com/macros/s/AKfycbwLRqxxGrcsW73R-iMHDbbKFchA2V6Xw5uUZmuo1qVW_DBW8KerO3GD2FRge7xPo-hbjw/exec';
 
   const payload = {
     type: 'absent_15j',
@@ -346,8 +343,8 @@ async function sendAbsent15(row) {
       datetime: new Date().toISOString(),
       metier: row.metier,
       chantier: row.chantier,
-      ce: row.ce,
       pm: row.pm,
+      ce: row.ce,
       ouvrier: row.ouvrier,
       user: row.pm || row.ce || '',
       flag: 'Absent+15js'
