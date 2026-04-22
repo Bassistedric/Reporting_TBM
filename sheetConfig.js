@@ -21,6 +21,12 @@ const TBM_RAW_CSV_URL =
 // Source dédiée tbPM
 const TBPM_DATA_URL = "https://script.google.com/macros/s/AKfycbw4yJAf5PJH8G_TRmHAUaTy9yavXrIz_wgtT8C6O4PaUOt5vOhW7qzcSyARUS01EADh7Q/exec";
 
+
+// URL Apps Script pour écrire les signalements absence dans LMRA_data_base > tbm
+// Si vide, l'application utilisera ATTESTATION_COLLECT_URL en fallback.
+const TBM_COLLECT_URL =
+  "";
+
 // URL Apps Script dédiée à l'application Attestation
 const ATTESTATION_COLLECT_URL =
   "https://script.google.com/macros/s/AKfycbyVjoTjAttwzjdQqUp2a1Upvvl9A1WEvp0dse47Cp_gt6mVOYDc1P_2u372poEZiu_H/exec";
@@ -34,6 +40,7 @@ if (typeof window !== "undefined") {
     TBM_RAW_GID,
     TBM_RAW_CSV_URL,
     TBPM_DATA_URL,
+    TBM_COLLECT_URL,
     ATTESTATION_COLLECT_URL
   });
 }

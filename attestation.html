@@ -261,10 +261,10 @@
         if (!f.pm) { alert("Sélectionne d'abord un PM."); return; }
 
         const ouvrier = decodeURIComponent(btn.dataset.ouvrier);
-        const url = window.ATTESTATION_COLLECT_URL;
-        if (!url) { alert("ATTESTATION_COLLECT_URL non configurée."); return; }
+        const url = window.TBM_COLLECT_URL || window.ATTESTATION_COLLECT_URL;
+        if (!url) { alert("TBM_COLLECT_URL / ATTESTATION_COLLECT_URL non configurée."); return; }
 
-        const payload = { data: { ...f, ouvrier, user: f.pm, flag: 'Absent+15js' } };
+        const payload = { data: { ...f, chantier:'Signalé absent', chantierOriginal:f.chantier, ouvrier, user: f.pm, flag: 'Absent+15js', status:'OK' } };
 
         await fetch(url, {
           method:'POST',
