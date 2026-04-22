@@ -330,24 +330,22 @@
     }
 
 async function sendAbsent15(row) {
-  const collectUrl = 'https://script.google.com/macros/s/AKfycbwLRqxxGrcsW73R-iMHDbbKFchA2V6Xw5uUZmuo1qVW_DBW8KerO3GD2FRge7xPo-hbjw/exec';
+  const collectUrl = window.TBM_COLLECT_URL || window.ATTESTATION_COLLECT_URL || 'https://script.google.com/macros/s/AKfycbwLRqxxGrcsW73R-iMHDbbKFchA2V6Xw5uUZmuo1qVW_DBW8KerO3GD2FRge7xPo-hbjw/exec';
+  if (!collectUrl) throw new Error('TBM_COLLECT_URL / ATTESTATION_COLLECT_URL non configurée');
 
   const payload = {
-    type: 'absent_15j',
-    meta: {
-      formType: 'absent_15j',
-      sentAt: new Date().toISOString(),
-      userAgent: navigator.userAgent
-    },
     data: {
       datetime: new Date().toISOString(),
+      month: row.month || currentMonthKey,
       metier: row.metier,
-      chantier: row.chantier,
+      chantier: 'Signalé absent',
+      chantierOriginal: row.chantier,
       pm: row.pm,
       ce: row.ce,
       ouvrier: row.ouvrier,
       user: row.pm || row.ce || '',
-      flag: 'Absent+15js'
+      flag: 'Absent+15js',
+      status: 'OK'
     }
   };
 
