@@ -146,25 +146,6 @@
     let confirmResolve = null;
     let rows = [], loadedMode = '';
 
-    function parseCsv(textContent) {
-      const rows = []; let i = 0, field = '', row = [], inQ = false;
-      while (i < textContent.length) {
-        const c = textContent[i];
-        if (inQ) {
-          if (c === '"' && textContent[i + 1] === '"') { field += '"'; i += 2; continue; }
-          if (c === '"') { inQ = false; i++; continue; }
-          field += c; i++; continue;
-        }
-        if (c === '"') { inQ = true; i++; continue; }
-        if (c === ',') { row.push(field); field = ''; i++; continue; }
-        if (c === '\n') { row.push(field); rows.push(row); field = ''; row = []; i++; continue; }
-        if (c === '\r') { i++; continue; }
-        field += c; i++;
-      }
-      if (field.length || row.length) { row.push(field); rows.push(row); }
-      return rows;
-    }
-
     function setOptions(select, values, placeholder='(Tous)', options={}) {
       const prev = select.value;
       select.innerHTML = '';
@@ -313,27 +294,11 @@
       loadedMode = 'Source dédiée tbPM';
     }
 
-    async function loadFallbackCsv() {
-      if (!window.SUIVI_PMS_CSV_URL) throw new Error('SUIVI_PMS_CSV_URL manquant');
-      const res = await fetch(window.SUIVI_PMS_CSV_URL, { cache:'no-store', headers:{ 'Cache-Control':'no-cache' } });
-      if (!res.ok) throw new Error('HTTP '+res.status);
-      const csv = parseCsv(await res.text());
-      const head = (csv[0] || []).map(txt);
-      const idx = { metier:head.indexOf('Metier'), pm:head.indexOf('PM'), chantier:head.indexOf('Chantier'), ce:head.indexOf('ChefEquipe'), ouvrier:head.indexOf('Ouvrier'), present:head.indexOf('PresentTBM') };
-      rows = csv.slice(1).filter(r => r.length && idx.ouvrier >= 0 && txt(r[idx.ouvrier])).map(r=>({ month: currentMonthKey, metier:norm(r[idx.metier])==='ELEC'?'ELEC':'HVAC_REF', chantier:txt(r[idx.chantier]), pm:txt(r[idx.pm]), ce:txt(r[idx.ce]), ouvrier:txt(r[idx.ouvrier]), day:'', status:norm(r[idx.present])==='OUI'?'OK':'NOK' }));
-      loadedMode = 'Fallback CSV actuel';
-    }
-
     async function load() {
       sourceModeEl.textContent = 'Source : chargement…';
       statusEl.textContent = 'Chargement…';
       try {
-        try {
-          await loadConsolidated();
-        } catch (err) {
-          console.warn('Source dédiée indisponible, fallback CSV.', err);
-          await loadFallbackCsv();
-        }
+        await loadConsolidated();
         rebuildDropdowns();
         refreshView();
         sourceModeEl.textContent = `Source : ${loadedMode}`;
@@ -407,7 +372,7 @@ async function sendAbsent15(row) {
 
     [selMetier, selMonth, selChantier, selCE, selPM, selStatus].forEach(s=>s.addEventListener('change', async ()=>{
       try {
-        if (s===selMonth && loadedMode==='Source dédiée tbPM') await loadConsolidated();
+        if (s===selMonth) await loadConsolidated();
         rebuildDropdowns(); refreshView();
       } catch (err) {
         console.error(err);
@@ -418,7 +383,7 @@ async function sendAbsent15(row) {
     $('btnReset').addEventListener('click', async ()=>{
       try {
         selMetier.value=''; selMonth.value=currentMonthKey; selChantier.value=''; selCE.value=''; selPM.value=''; selStatus.value='';
-        if (loadedMode==='Source dédiée tbPM') await loadConsolidated();
+        await loadConsolidated();
         rebuildDropdowns(); refreshView();
       } catch (err) {
         console.error(err);
