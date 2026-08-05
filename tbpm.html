@@ -139,6 +139,7 @@
     const norm = (s) => String(s ?? '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ');
     const txt = (s) => String(s ?? '').trim();
     const currentMonthKey = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+    const monthHistoryDepth = 24;
     const selMetier = $('selMetier'), selMonth = $('selMonth'), selChantier = $('selChantier'), selCE = $('selCE'), selPM = $('selPM'), selStatus = $('selStatus');
     const statusEl = $('status'), sourceModeEl = $('sourceMode'), tbody = document.querySelector('#tbl tbody'), summaryBody = $('summaryBody');
     const confirmOverlay = $('confirmOverlay'), confirmMsg = $('confirmMsg');
@@ -164,12 +165,43 @@
       return rows;
     }
 
-    function setOptions(select, values, placeholder='(Tous)') {
+    function setOptions(select, values, placeholder='(Tous)', options={}) {
       const prev = select.value;
       select.innerHTML = '';
-      const empty = document.createElement('option'); empty.value=''; empty.textContent=placeholder; select.appendChild(empty);
-      values.forEach(v => { const o = document.createElement('option'); o.value=v; o.textContent=v; select.appendChild(o); });
-      if ([...select.options].some(o=>o.value===prev)) select.value = prev; else select.value='';
+      if (!options.required) {
+        const empty = document.createElement('option');
+        empty.value = '';
+        empty.textContent = placeholder;
+        select.appendChild(empty);
+      }
+      values.forEach(v => {
+        const o = document.createElement('option');
+        const value = typeof v === 'object' ? v.value : v;
+        o.value = value;
+        o.textContent = typeof v === 'object' ? v.label : v;
+        select.appendChild(o);
+      });
+      if ([...select.options].some(o=>o.value===prev)) select.value = prev; else select.value = options.defaultValue || '';
+    }
+
+    function addMonths(monthKey, delta) {
+      const [year, month] = monthKey.split('-').map(Number);
+      const d = new Date(year, month - 1 + delta, 1);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    }
+
+    function monthLabel(monthKey) {
+      const [year, month] = monthKey.split('-').map(Number);
+      const label = new Date(year, month - 1, 1).toLocaleDateString('fr-BE', { month:'long', year:'numeric' });
+      return monthKey === currentMonthKey ? `${label} (mois en cours)` : label;
+    }
+
+    function buildMonthOptions(data) {
+      const generated = Array.from({ length: monthHistoryDepth + 1 }, (_, i) => addMonths(currentMonthKey, -i));
+      const fromData = data.map(r=>r.month).filter(Boolean);
+      return [...new Set([...generated, ...fromData])]
+        .sort((a,b)=>b.localeCompare(a))
+        .map(value => ({ value, label: monthLabel(value) }));
     }
 
     function getFilters() { return { metier:selMetier.value, month:selMonth.value, chantier:selChantier.value, ce:selCE.value, pm:selPM.value, status:selStatus.value }; }
@@ -188,9 +220,7 @@
     function rebuildDropdowns() {
       const f = getFilters();
       setOptions(selMetier, [...new Set(rows.map(r=>r.metier).filter(Boolean))].sort(), '(Tous)');
-      const months = [...new Set(rows.map(r=>r.month).filter(Boolean))].sort();
-      setOptions(selMonth, months, '(Mois en cours)');
-      if (!selMonth.value && months.includes(currentMonthKey)) selMonth.value = currentMonthKey;
+      setOptions(selMonth, buildMonthOptions(rows), '(Mois)', { required:true, defaultValue:currentMonthKey });
       const f2 = getFilters();
       setOptions(selChantier, [...new Set(rows.filter(r=>(!f2.metier||r.metier===f2.metier)&&(!f2.month||r.month===f2.month)).map(r=>r.chantier).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr')),'(Tous)');
       const f3 = getFilters();

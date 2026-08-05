@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tbpm-cache-v3';
+const CACHE_NAME = 'tbpm-cache-v4';
 const ASSETS = [
   './',
   './tbpm.html',
